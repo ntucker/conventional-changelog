@@ -93,8 +93,14 @@ function mergeConfig (options, context, gitRawCommitsOpts, parserOpts, writerOpt
   if (options.config) {
     if (_.isFunction(options.config)) {
       configPromise = Q.nfcall(options.config)
-    } else {
+    } else if (options.config.then) {
       configPromise = Q(options.config)
+    } else {
+      configPromise = Q.Promise(
+        function (resolve, reject) {
+          resolve(options.config)
+        }
+      )
     }
   }
 
