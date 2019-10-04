@@ -18,6 +18,8 @@ describe('git-raw-commits', function () {
     shell.mkdir('tmp')
     shell.cd('tmp')
     shell.exec('git init')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
   })
 
   it('should emit an error and the error should not be read only if there is no commits', function (done) {

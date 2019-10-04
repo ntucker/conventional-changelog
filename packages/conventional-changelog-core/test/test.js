@@ -29,6 +29,8 @@ betterThanBefore.setups([
     shell.cd(tmpDir)
     shell.mkdir('git-templates')
     shell.exec('git init --template=./git-templates')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
     writeFileSync('package.json', '{ "name": "conventional-changelog-core", "repository": { "type": "git", "url": "https://github.com/conventional-changelog/conventional-changelog-core.git" } }')
     gitDummyCommit('First commit')
   },

@@ -21,6 +21,8 @@ describe('gulp-conventional-changelog', function () {
     shell.mkdir('tmp')
     shell.cd('tmp')
     shell.exec('git init')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
   })
 
   describe('error', function () {

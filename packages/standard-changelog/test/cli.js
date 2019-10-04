@@ -29,6 +29,8 @@ describe('standard-changelog cli', function () {
     shell.mkdir('tmp')
     shell.cd('tmp')
     shell.exec('git init')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
     shell.exec('git add --all && git commit --allow-empty -m"feat: First commit"')
   })
 

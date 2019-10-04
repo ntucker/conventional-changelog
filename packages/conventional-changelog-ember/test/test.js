@@ -19,6 +19,8 @@ describe('ember preset', function () {
     shell.cd('tmp')
     shell.mkdir('git-templates')
     shell.exec('git init --template=./git-templates')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
 
     gitDummyCommit(['Merge pull request #12001 from rwjblue/remove-with-controller', '[CLEANUP beta] Remove {{with}} keyword\'s controller option. Closes #1'])
     gitDummyCommit(['Merge pull request #11984 from emberjs/fix-each', '[PERF beta] `@each` should remain a stable node for chains.'])

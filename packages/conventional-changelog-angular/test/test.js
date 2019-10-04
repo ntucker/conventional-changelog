@@ -21,6 +21,8 @@ betterThanBefore.setups([
     shell.cd('tmp')
     shell.mkdir('git-templates')
     shell.exec('git init --template=./git-templates')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
 
     gitDummyCommit(['build: first build setup', 'BREAKING CHANGE: New build system.'])
     gitDummyCommit(['ci(travis): add TravisCI pipeline', 'BREAKING CHANGE: Continuously integrated.'])

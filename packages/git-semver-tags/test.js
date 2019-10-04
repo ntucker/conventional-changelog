@@ -19,6 +19,8 @@ describe('git-semver-tags', function () {
     shell.mkdir('tmp')
     shell.cd('tmp')
     shell.exec('git init')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
   })
 
   it('should error if no commits found', function (done) {
@@ -118,6 +120,8 @@ describe('git-semver-tags', function () {
   it('should work with empty commit', function (done) {
     shell.rm('-rf', '.git')
     shell.exec('git init')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
     gitDummyCommit('empty commit')
     shell.exec('git tag v1.1.0')
     shell.exec('git tag blarg-project@1.0.0') // should be ignored.
@@ -208,6 +212,8 @@ describe('git semver tags on different cwd', function () {
     shell.mkdir('foobar')
     shell.cd('foobar')
     shell.exec('git init')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
 
     writeFileSync('test2', '')
     shell.exec('git add --all && git commit -m "First commit"')

@@ -18,6 +18,8 @@ betterThanBefore.setups([
     const tempDirectory = temp.mkdirSync()
     shell.cd(tempDirectory)
     shell.exec(`git init`)
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
   },
   () => { // 2
     fs.writeFileSync(`test1`, ``)

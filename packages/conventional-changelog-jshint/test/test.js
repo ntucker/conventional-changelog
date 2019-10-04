@@ -20,6 +20,8 @@ describe('jshint preset', function () {
     shell.cd('tmp')
     shell.mkdir('git-templates')
     shell.exec('git init --template=./git-templates')
+    shell.exec('git config commit.gpgsign false')
+    shell.exec('git config tag.gpgsign false')
 
     writeFileSync('test1', '')
     shell.exec('git add --all && git commit -m"[[Chore]] Move scope-manager to external file"')
