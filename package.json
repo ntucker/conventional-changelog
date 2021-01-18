@@ -27,14 +27,15 @@
   "scripts": {
     "clear": "pnpm -r --parallel --if-present clear && del ./coverage",
     "build": "pnpm -r --parallel --if-present build",
-    "lint": "eslint '*.{js,cjs}' 'packages/**/*.{js,cjs,ts}'",
+    "lint": "eslint '*.{js,cjs}' 'packages/conventional-changelog-conventionalcommits/*.{js,cjs,ts}'",
     "format": "pnpm lint --fix",
     "test:types": "pnpm -r --parallel --if-present test:types",
     "test:unit": "vitest run --coverage",
     "test:unit:watch": "vitest watch",
     "test": "run -p lint test:types test:unit",
     "commit": "cz",
-    "updateGitHooks": "simple-git-hooks"
+    "updateGitHooks": "simple-git-hooks",
+    "release": "lerna publish --conventional-commits --dist-tag=next"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.2.2",

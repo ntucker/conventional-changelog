@@ -87,7 +87,7 @@ function getWriterOpts(config) {
 
         return {
           ...note,
-          title: 'BREAKING CHANGES'
+          title: '💥 BREAKING CHANGES'
         }
       })
 

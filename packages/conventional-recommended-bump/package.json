@@ -59,6 +59,6 @@
     "meow": "^13.0.0"
   },
   "devDependencies": {
-    "conventional-changelog-conventionalcommits": "workspace:^"
+    "conventional-changelog-anansi": "workspace:^"
   }
 }

@@ -23,13 +23,13 @@ setups([
         url: 'https://github.com/conventional-changelog/conventional-changelog.git'
       }
     }))
-    testTools.gitCommit(['build!: first build setup', 'BREAKING CHANGE: New build system.'])
-    testTools.gitCommit(['ci(travis): add TravisCI pipeline', 'BREAKING CHANGE: Continuously integrated.'])
-    testTools.gitCommit(['Feat: amazing new module', 'BREAKING CHANGE: Not backward compatible.'])
-    testTools.gitCommit(['Fix(compile): avoid a bug', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['perf(ngOptions): make it faster', ' closes #1, #2'])
+    testTools.gitCommit(['internal!: first build setup', 'BREAKING CHANGE: New build system.'])
+    testTools.gitCommit(['internal(travis): add TravisCI pipeline', 'BREAKING CHANGE: Continuously integrated.'])
+    testTools.gitCommit(['feat: amazing new module', 'BREAKING CHANGE: Not backward compatible.'])
+    testTools.gitCommit(['fix(compile): avoid a bug', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['enhance(ngOptions): make it faster', ' closes #1, #2'])
     testTools.gitCommit(['fix(changelog): proper issue links', ' see #1, conventional-changelog/standard-version#358'])
-    testTools.gitCommit('revert(ngOptions): bad commit')
+    testTools.gitCommit('internal(ngOptions): bad commit')
     testTools.gitCommit('fix(*): oops')
     testTools.gitCommit(['fix(changelog): proper issue links', ' see GH-1'])
     testTools.gitCommit(['feat(awesome): adress EXAMPLE-1'])
@@ -47,12 +47,12 @@ setups([
     testTools.gitCommit(['feat(awesome): issue brought up by @bcoe! on Friday'])
   },
   () => {
-    testTools.gitCommit(['build(npm): edit build script', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['ci(travis): setup travis', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['internal(npm): edit build script', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['internal(travis): setup travis', 'BREAKING CHANGE: The Change is huge.'])
     testTools.gitCommit(['docs(readme): make it clear', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['style(whitespace): make it easier to read', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['refactor(code): change a lot of code', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['test(*)!: more tests', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['internal(whitespace): make it easier to read', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['internal(code): change a lot of code', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['internal(*)!: more tests', 'BREAKING CHANGE: The Change is huge.'])
   },
   () => {
     testTools.exec('git tag v0.1.0')
@@ -67,7 +67,7 @@ setups([
   },
   () => {
     testTools.gitCommit(['fix: use npm@5 (@username)'])
-    testTools.gitCommit(['build(deps): bump @dummy/package from 7.1.2 to 8.0.0', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['internal(deps): bump @dummy/package from 7.1.2 to 8.0.0', 'BREAKING CHANGE: The Change is huge.'])
     testTools.gitCommit([
       'feat: complex new feature',
       'this is a complex new feature with many reviewers',
