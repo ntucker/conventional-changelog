@@ -82,7 +82,7 @@ function getWriterOpts (config) {
       addBangNotes(commit)
 
       commit.notes.forEach(note => {
-        note.title = 'BREAKING CHANGES'
+        note.title = `💥 BREAKING CHANGES`
         discard = false
       })
 
@@ -150,7 +150,7 @@ function getWriterOpts (config) {
     // the groupings of commit messages, e.g., Features vs., Bug Fixes, are
     // sorted based on their probable importance:
     commitGroupsSort: (a, b) => {
-      const commitGroupOrder = ['Reverts', 'Performance Improvements', 'Bug Fixes', 'Features']
+      const commitGroupOrder = ['📝 Documentation', '🏠 Internal', '📦 Package', '🐛 Bug Fix', '💅 Enhancement', '🚀 Features']
       const gRankA = commitGroupOrder.indexOf(a.title)
       const gRankB = commitGroupOrder.indexOf(b.title)
       if (gRankA >= gRankB) {
@@ -169,18 +169,12 @@ function getWriterOpts (config) {
 function defaultConfig (config) {
   config = config || {}
   config.types = config.types || [
-    { type: 'feat', section: 'Features' },
-    { type: 'feature', section: 'Features' },
-    { type: 'fix', section: 'Bug Fixes' },
-    { type: 'perf', section: 'Performance Improvements' },
-    { type: 'revert', section: 'Reverts' },
-    { type: 'docs', section: 'Documentation', hidden: true },
-    { type: 'style', section: 'Styles', hidden: true },
-    { type: 'chore', section: 'Miscellaneous Chores', hidden: true },
-    { type: 'refactor', section: 'Code Refactoring', hidden: true },
-    { type: 'test', section: 'Tests', hidden: true },
-    { type: 'build', section: 'Build System', hidden: true },
-    { type: 'ci', section: 'Continuous Integration', hidden: true }
+    { type: 'feat', section: '🚀 Features' },
+    { type: 'enhance', section: '💅 Enhancement' },
+    { type: 'fix', section: '🐛 Bug Fix' },
+    { type: 'pkg', section: '📦 Package' },
+    { type: 'internal', section: '🏠 Internal', hidden: true },
+    { type: 'docs', section: '📝 Documentation' }
   ]
   config.issueUrlFormat = config.issueUrlFormat ||
     '{{host}}/{{owner}}/{{repository}}/issues/{{id}}'

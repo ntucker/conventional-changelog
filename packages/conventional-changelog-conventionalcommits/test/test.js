@@ -23,13 +23,13 @@ betterThanBefore.setups([
     shell.mkdir('git-templates')
     shell.exec('git init --template=./git-templates')
 
-    gitDummyCommit(['build!: first build setup', 'BREAKING CHANGE: New build system.'])
-    gitDummyCommit(['ci(travis): add TravisCI pipeline', 'BREAKING CHANGE: Continuously integrated.'])
-    gitDummyCommit(['Feat: amazing new module', 'BREAKING CHANGE: Not backward compatible.'])
-    gitDummyCommit(['Fix(compile): avoid a bug', 'BREAKING CHANGE: The Change is huge.'])
-    gitDummyCommit(['perf(ngOptions): make it faster', ' closes #1, #2'])
+    gitDummyCommit(['internal!: first build setup', 'BREAKING CHANGE: New build system.'])
+    gitDummyCommit(['internal(travis): add TravisCI pipeline', 'BREAKING CHANGE: Continuously integrated.'])
+    gitDummyCommit(['feat: amazing new module', 'BREAKING CHANGE: Not backward compatible.'])
+    gitDummyCommit(['fix(compile): avoid a bug', 'BREAKING CHANGE: The Change is huge.'])
+    gitDummyCommit(['enhance(ngOptions): make it faster', ' closes #1, #2'])
     gitDummyCommit(['fix(changelog): proper issue links', ' see #1, conventional-changelog/standard-version#358'])
-    gitDummyCommit('revert(ngOptions): bad commit')
+    gitDummyCommit('internal(ngOptions): bad commit')
     gitDummyCommit('fix(*): oops')
     gitDummyCommit(['fix(changelog): proper issue links', ' see GH-1'])
     gitDummyCommit(['feat(awesome): adress EXAMPLE-1'])
@@ -46,12 +46,12 @@ betterThanBefore.setups([
     gitDummyCommit(['feat(awesome): issue brought up by @bcoe! on Friday'])
   },
   function () {
-    gitDummyCommit(['build(npm): edit build script', 'BREAKING CHANGE: The Change is huge.'])
-    gitDummyCommit(['ci(travis): setup travis', 'BREAKING CHANGE: The Change is huge.'])
+    gitDummyCommit(['internal(npm): edit build script', 'BREAKING CHANGE: The Change is huge.'])
+    gitDummyCommit(['internal(travis): setup travis', 'BREAKING CHANGE: The Change is huge.'])
     gitDummyCommit(['docs(readme): make it clear', 'BREAKING CHANGE: The Change is huge.'])
-    gitDummyCommit(['style(whitespace): make it easier to read', 'BREAKING CHANGE: The Change is huge.'])
-    gitDummyCommit(['refactor(code): change a lot of code', 'BREAKING CHANGE: The Change is huge.'])
-    gitDummyCommit(['test(*)!: more tests', 'BREAKING CHANGE: The Change is huge.'])
+    gitDummyCommit(['internal(whitespace): make it easier to read', 'BREAKING CHANGE: The Change is huge.'])
+    gitDummyCommit(['internal(code): change a lot of code', 'BREAKING CHANGE: The Change is huge.'])
+    gitDummyCommit(['internal(*)!: more tests', 'BREAKING CHANGE: The Change is huge.'])
   },
   function () {
     shell.exec('git tag v0.1.0')
@@ -66,7 +66,7 @@ betterThanBefore.setups([
   },
   function () {
     gitDummyCommit(['fix: use npm@5 (@username)'])
-    gitDummyCommit(['build(deps): bump @dummy/package from 7.1.2 to 8.0.0', 'BREAKING CHANGE: The Change is huge.'])
+    gitDummyCommit(['internal(pkg): bump @dummy/package from 7.1.2 to 8.0.0', 'BREAKING CHANGE: The Change is huge.'])
     gitDummyCommit([
       'feat: complex new feature',
       'this is a complex new feature with many reviewers',
@@ -95,6 +95,7 @@ describe('conventionalcommits.org preset', function () {
       })
       .pipe(through(function (chunk) {
         chunk = chunk.toString()
+        console.log(chunk)
 
         expect(chunk).to.include('first build setup')
         expect(chunk).to.include('**travis:** add TravisCI pipeline')

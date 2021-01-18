@@ -38,9 +38,10 @@
     "lint": "eslint . --cache --cache-location ./node_modules/.cache/ --ignore-path .gitignore",
     "fix": "eslint . --fix --cache --cache-location ./node_modules/.cache/ --ignore-path .gitignore",
     "pretest": "npm run lint",
-    "test": "c8 mocha --timeout 30000 packages/*/test{,/*}.js",
-    "test-windows": "c8 mocha --timeout 60000 packages/*/test{,/*}.js",
-    "postinstall": "bash scripts/install.sh"
+    "test": "c8 mocha --timeout 30000 packages/conventional-changelog-conventionalcommits/test{,/*}.js",
+    "test-windows": "c8 mocha --timeout 60000 packages/conventional-changelog-conventionalcommits/test{,/*}.js",
+    "postinstall": "bash scripts/install.sh",
+    "release": "lerna publish --conventional-commits --dist-tag=next"
   },
   "version": "1.0.0",
   "devDependencies": {
