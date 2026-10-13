@@ -1,4 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe,
+  it,
+  expect
+} from 'vitest'
 import { CommitParser } from './CommitParser.js'
 
 const customOptions = {
@@ -78,6 +82,347 @@ describe('conventional-commits-parser', () => {
             owner: null,
             prefix: '#',
             raw: 'Subject #1',
+            repository: null
+          }
+        ])
+      })
+
+      it('should match reference actions as whole words', () => {
+        const commit = 'feat: add prefix #12 support\n\nCloses #1 and fixups #2'
+        const result = parser.parse(commit)
+
+        expect(result.references).toEqual([
+          {
+            action: null,
+            issue: '12',
+            owner: null,
+            prefix: '#',
+            raw: 'feat: add prefix #12',
+            repository: null
+          },
+          {
+            action: 'Closes',
+            issue: '1',
+            owner: null,
+            prefix: '#',
+            raw: '#1',
+            repository: null
+          },
+          {
+            action: 'Closes',
+            issue: '2',
+            owner: null,
+            prefix: '#',
+            raw: ' and fixups #2',
+            repository: null
+          }
+        ])
+      })
+
+      it('should parse reference actions of footers followed by a colon (#1550)', () => {
+        const commit = 'feat: add Polish language\n\nCloses #123\nCloses: #456\nFixes: owner/repo#7\nRefs: #4'
+        const result = parser.parse(commit)
+
+        expect(result.references).toEqual([
+          {
+            action: 'Closes',
+            issue: '123',
+            owner: null,
+            prefix: '#',
+            raw: '#123',
+            repository: null
+          },
+          {
+            action: 'Closes',
+            issue: '456',
+            owner: null,
+            prefix: '#',
+            raw: '#456',
+            repository: null
+          },
+          {
+            action: 'Fixes',
+            issue: '7',
+            owner: 'owner',
+            prefix: '#',
+            raw: 'owner/repo#7',
+            repository: 'repo'
+          },
+          {
+            action: null,
+            issue: '4',
+            owner: null,
+            prefix: '#',
+            raw: 'Refs: #4',
+            repository: null
+          }
+        ])
+      })
+
+      it('should not take the type of a header for a reference action', () => {
+        const result = parser.parse('fix: crash in #123')
+
+        expect(result.references).toEqual([
+          {
+            action: null,
+            issue: '123',
+            owner: null,
+            prefix: '#',
+            raw: 'fix: crash in #123',
+            repository: null
+          }
+        ])
+      })
+
+      it('should stop note text before reference footer ending with a period', () => {
+        const commit = 'feat!: support type effects\n'
+          + '\n'
+          + 'BREAKING CHANGE: effect replaces hidden.\n'
+          + '\n'
+          + 'Fixes #1476.'
+        const result = parser.parse(commit)
+
+        expect(result.notes).toEqual([
+          {
+            title: 'BREAKING CHANGE',
+            text: 'effect replaces hidden.'
+          }
+        ])
+        expect(result.references).toEqual([
+          {
+            action: 'Fixes',
+            issue: '1476',
+            owner: null,
+            prefix: '#',
+            raw: '#1476',
+            repository: null
+          }
+        ])
+      })
+
+      it('should keep reference-like sentences in note text', () => {
+        const commit = 'feat!: support type effects\n'
+          + '\n'
+          + 'BREAKING CHANGE: effect replaces hidden.\n'
+          + 'This fixes #1476.\n'
+          + 'Consumers need to update their config.'
+        const result = parser.parse(commit)
+
+        expect(result.notes).toEqual([
+          {
+            title: 'BREAKING CHANGE',
+            text: 'effect replaces hidden.\nThis fixes #1476.\nConsumers need to update their config.'
+          }
+        ])
+        expect(result.references).toEqual([
+          {
+            action: 'fixes',
+            issue: '1476',
+            owner: null,
+            prefix: '#',
+            raw: '#1476',
+            repository: null
+          }
+        ])
+      })
+
+      it('should stop note text before the next footer token', () => {
+        const commit = 'feat!: support type effects\n'
+          + '\n'
+          + 'BREAKING CHANGE: effect replaces hidden.\n'
+          + '\n'
+          + 'Reviewed-by: Z'
+        const result = parser.parse(commit)
+
+        expect(result.notes).toEqual([
+          {
+            title: 'BREAKING CHANGE',
+            text: 'effect replaces hidden.'
+          }
+        ])
+        expect(result.footer).toBe('BREAKING CHANGE: effect replaces hidden.\n\nReviewed-by: Z')
+      })
+
+      it('should parse next custom note before checking footer tokens', () => {
+        const parser = new CommitParser({
+          noteKeywords: ['SECURITY', 'DEPRECATION']
+        })
+        const result = parser.parse(
+          'feat: support custom notes\n'
+          + '\n'
+          + 'SECURITY: token validation was hardened.\n'
+          + '\n'
+          + 'DEPRECATION: legacy token fallback will be removed.'
+        )
+
+        expect(result.notes).toEqual([
+          {
+            title: 'SECURITY',
+            text: 'token validation was hardened.'
+          },
+          {
+            title: 'DEPRECATION',
+            text: 'legacy token fallback will be removed.'
+          }
+        ])
+      })
+
+      it('should parse trailer footers without references (#773)', () => {
+        const result = parser.parse(
+          'test: this is a test\n'
+          + '\n'
+          + 'this is the body of the commit\n'
+          + '\n'
+          + 'Foo: Foo: this is a trailer\n'
+          + 'Bar: This is the footer of the commit'
+        )
+
+        expect(result.body).toBe('this is the body of the commit')
+        expect(result.footer).toBe('Foo: Foo: this is a trailer\nBar: This is the footer of the commit')
+      })
+
+      it('should not cut breaking change notes at inline references (#819)', () => {
+        const result = parser.parse(
+          'feat: add some cool new stuff\n'
+          + '\n'
+          + 'BREAKING CHANGE: We removed some boring old stuff in\n'
+          + 'order to make room for the new stuff. We went back and\n'
+          + 'forth on whether or not to do this in #4, so if you want\n'
+          + 'more information you should check out that discussion.'
+        )
+
+        expect(result.notes).toEqual([
+          {
+            title: 'BREAKING CHANGE',
+            text: 'We removed some boring old stuff in\n'
+              + 'order to make room for the new stuff. We went back and\n'
+              + 'forth on whether or not to do this in #4, so if you want\n'
+              + 'more information you should check out that discussion.'
+          }
+        ])
+        expect(result.references).toEqual([
+          {
+            action: null,
+            issue: '4',
+            owner: null,
+            prefix: '#',
+            raw: 'forth on whether or not to do this in #4',
+            repository: null
+          }
+        ])
+      })
+
+      it('should not include trailers after breaking change notes (#428)', () => {
+        const result = parser.parse(
+          'feat!: add some cool new stuff\n'
+          + '\n'
+          + 'BREAKING CHANGE: this changes the API.\n'
+          + '\n'
+          + 'Co-authored-by: Someone <someone@example.com>'
+        )
+
+        expect(result.notes).toEqual([
+          {
+            title: 'BREAKING CHANGE',
+            text: 'this changes the API.'
+          }
+        ])
+        expect(result.footer).toBe(
+          'BREAKING CHANGE: this changes the API.\n'
+          + '\n'
+          + 'Co-authored-by: Someone <someone@example.com>'
+        )
+      })
+
+      it('should not treat indented `key: value` lines as footers (#1512)', () => {
+        const result = parser.parse(
+          'chore(deps): bump foo from 1.0.0 to 2.0.0\n'
+          + '\n'
+          + 'Bumps foo from 1.0.0 to 2.0.0.\n'
+          + '\n'
+          + '---\n'
+          + 'updated-dependencies:\n'
+          + '- dependency-name: "foo"\n'
+          + '  dependency-version: 2.0.0\n'
+          + '  dependency-type: direct:development\n'
+          + '...\n'
+          + '\n'
+          + 'Signed-off-by: dependabot[bot] <support@github.com>'
+        )
+
+        expect(result.body).toBe(
+          'Bumps foo from 1.0.0 to 2.0.0.\n'
+          + '\n'
+          + '---\n'
+          + 'updated-dependencies:\n'
+          + '- dependency-name: "foo"\n'
+          + '  dependency-version: 2.0.0\n'
+          + '  dependency-type: direct:development\n'
+          + '...'
+        )
+        expect(result.footer).toBe('Signed-off-by: dependabot[bot] <support@github.com>')
+      })
+
+      it('should not treat note keywords stranded by word-wrap as notes (#1515)', () => {
+        const result = parser.parse(
+          'docs(repo): use commit subjects for 5.0.0 \n'
+          + 'breaking changes #DS-2683\n'
+          + '\n'
+          + '- rewrite the 5.0.0 breaking changes entries in the web, web-react, and\n'
+          + '  design-tokens changelogs to use the concise commit subject instead of\n'
+          + '  the verbose breaking-change footer taken from the commit body\n'
+          + '- remove leaked co-author trailers from the breaking-change notes\n'
+          + '- collapse duplicate entries produced by commits carrying multiple\n'
+          + '  breaking-change footers'
+        )
+
+        expect(result.notes).toEqual([])
+      })
+
+      it('should not treat note keywords without a colon as notes (#1515)', () => {
+        const result = parser.parse(
+          'feat: something\n'
+          + '\n'
+          + 'BREAKING CHANGE was discussed but this commit contains none.'
+        )
+
+        expect(result.notes).toEqual([])
+        expect(result.body).toBe('BREAKING CHANGE was discussed but this commit contains none.')
+      })
+
+      it('should parse `-field-` meta markers with the default field pattern', () => {
+        const result = parser.parse(
+          'My commit message\n'
+          + '-hash-\n'
+          + '9b1aff905b638aa274a5fc8f88662df446d374bd\n'
+          + '-git-tags-\n'
+          + 'v1.0.0'
+        )
+
+        expect(result.hash).toBe('9b1aff905b638aa274a5fc8f88662df446d374bd')
+        expect(result['git-tags']).toBe('v1.0.0')
+      })
+
+      it('should deduplicate references when the same issue appears multiple times', () => {
+        const commit = 'feat(ng-list): Allow custom separator\n'
+          + 'Closes #123\nCloses #123\nFixes #123\n'
+        const result = parser.parse(commit)
+
+        expect(result.references).toEqual([
+          {
+            action: 'Closes',
+            issue: '123',
+            owner: null,
+            prefix: '#',
+            raw: '#123',
+            repository: null
+          },
+          {
+            action: 'Fixes',
+            issue: '123',
+            owner: null,
+            prefix: '#',
+            raw: '#123',
             repository: null
           }
         ])
@@ -171,18 +516,23 @@ describe('conventional-commits-parser', () => {
         )).toEqual({
           merge: null,
           header: ' feat(scope): broadcast $destroy event on scope destruction ',
-          body: ' perf testing shows that in chrome this change adds 5-15% overhead \n\n when destroying 10k nested scopes where each scope has a $destroy listener ',
-          footer: '         BREAKING AMEND: some breaking change         \n\n   BREAKING AMEND: An awesome breaking change\n\n\n```\ncode here\n```\n\n    Kills   #1',
-          notes: [
-            {
-              title: 'BREAKING AMEND',
-              text: 'some breaking change         '
-            },
-            {
-              title: 'BREAKING AMEND',
-              text: 'An awesome breaking change\n\n\n```\ncode here\n```'
-            }
-          ],
+          // indented note keywords and footer tokens are not notes/footers,
+          // they stay in the body
+          body: ' perf testing shows that in chrome this change adds 5-15% overhead \n'
+            + '\n'
+            + ' when destroying 10k nested scopes where each scope has a $destroy listener \n'
+            + '         BREAKING AMEND: some breaking change         \n'
+            + '\n'
+            + '   BREAKING AMEND: An awesome breaking change\n'
+            + '\n'
+            + '\n'
+            + '```\n'
+            + 'code here\n'
+            + '```\n'
+            + '\n'
+            + '    Kills   #1',
+          footer: null,
+          notes: [],
           references: [
             {
               action: 'Kills',
@@ -864,19 +1214,19 @@ describe('conventional-commits-parser', () => {
           + 'nesting elements or using `<template>` tags explicitly.'
         const text = `${expectedText
         }\n`
-            + `Closes #9462`
+        + `Closes #9462`
         const parser = new CommitParser({
           ...customOptions,
           noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE']
         })
         const commit = parser.parse(
           `fix(core): report duplicate template bindings in templates\n`
-            + `\n`
-            + `Fixes #7315\n`
-            + `\n`
-            + `* BREAKING CHANGE:\n`
-            + `\n${
-              text}`
+          + `\n`
+          + `Fixes #7315\n`
+          + `\n`
+          + `* BREAKING CHANGE:\n`
+          + `\n${
+            text}`
         )
         const expected = {
           title: 'BREAKING CHANGE',

@@ -7,10 +7,6 @@ import {
   output,
   outputStream
 } from '@simple-libs/child-process-utils'
-import {
-  formatArgs,
-  toArray
-} from './utils.js'
 import type {
   GitLogParams,
   GitLogTagsParams,
@@ -20,8 +16,15 @@ import type {
   GitFetchParams,
   Arg
 } from './types.js'
+import {
+  formatArgs,
+  toArray
+} from './utils.js'
 
 const SCISSOR = '------------------------ >8 ------------------------'
+// Marks the end of the options, so a value which starts with a dash
+// is never parsed as a git option. Unlike `--` it works for revisions too.
+const END_OF_OPTIONS = '--end-of-options'
 
 /**
  * Wrapper around Git CLI.
@@ -29,7 +32,7 @@ const SCISSOR = '------------------------ >8 ------------------------'
 export class GitClient {
   constructor(
     readonly cwd: string,
-    public debug?: ((log: string[]) => void) | undefined
+    public debug?: (log: string[]) => void
   ) {}
 
   private formatArgs(...args: Arg[]) {
@@ -75,7 +78,7 @@ export class GitClient {
       await this.exec('init')
 
       return true
-    } catch (err) {
+    } catch {
       return false
     }
   }
@@ -98,7 +101,8 @@ export class GitClient {
       ignore,
       reverse,
       merges,
-      since
+      since,
+      firstParent
     } = params
     const shouldNotIgnore = ignore
       ? (chunk: string) => !ignore.test(chunk)
@@ -110,6 +114,8 @@ export class GitClient {
       reverse && '--reverse',
       merges && '--merges',
       merges === false && '--no-merges',
+      firstParent && '--first-parent',
+      END_OF_OPTIONS,
       [from, to].filter(Boolean).join('..'),
       ...path ? ['--', ...toArray(path)] : []
     )
@@ -133,7 +139,8 @@ export class GitClient {
       path,
       from = '',
       to = 'HEAD',
-      since
+      since,
+      all
     } = params
     const tagRegex = /tag:\s*(.+?)[,)]/gi
     const stdout = this.execStream(
@@ -141,7 +148,9 @@ export class GitClient {
       '--decorate',
       '--no-color',
       '--date-order',
+      all && '--all',
       since && `--since=${since instanceof Date ? since.toISOString() : since}`,
+      END_OF_OPTIONS,
       [from, to].filter(Boolean).join('..'),
       ...path ? ['--', ...toArray(path)] : []
     )
@@ -181,7 +190,7 @@ export class GitClient {
       )
 
       return true
-    } catch (err) {
+    } catch {
       return false
     }
   }
@@ -325,6 +334,7 @@ export class GitClient {
     let git = this.exec(
       'rev-parse',
       '--verify',
+      END_OF_OPTIONS,
       rev
     )
 
@@ -383,16 +393,19 @@ export class GitClient {
       unshallow && '--unshallow',
       tags && '--tags',
       all && '--all',
-      ...remote && branch ? [
-        '--',
-        remote,
-        branch
-      ] : []
+      ...remote && branch
+        ? [
+          '--',
+          remote,
+          branch
+        ]
+        : []
     )
   }
 
   /**
    * Create a new branch.
+   * Name is a value of the `-b` option, so it is never parsed as an option itself.
    * @param branch - Branch name.
    */
   async createBranch(branch: string) {
@@ -423,6 +436,7 @@ export class GitClient {
   async checkout(branch: string) {
     await this.exec(
       'checkout',
+      END_OF_OPTIONS,
       branch
     )
   }

@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [12.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-recommended-bump-v12.0.1...conventional-recommended-bump-v12.1.0) (2026-07-09)
+
+### Features
+
+* replace `meow` with `argue-cli` ([#1505](https://github.com/conventional-changelog/conventional-changelog/issues/1505)) ([1ad6177](https://github.com/conventional-changelog/conventional-changelog/commit/1ad6177da0b9da2df4fffc41e0b6caf9b76bf200))
+
+## [12.0.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-recommended-bump-v12.0.0...conventional-recommended-bump-v12.0.1) (2026-07-04)
+
+### Bug Fixes
+
+* point package homepages and docs to documentation website ([04796e2](https://github.com/conventional-changelog/conventional-changelog/commit/04796e22a649a14647feea99b445df2eb1c3acad))
+
+## [12.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-recommended-bump-v11.2.0...conventional-recommended-bump-v12.0.0) (2026-06-26)
+
+### ⚠ BREAKING CHANGES
+
+* packages now require Node.js 22 or newer.
+
+### Features
+
+* require node 22 ([de5e136](https://github.com/conventional-changelog/conventional-changelog/commit/de5e1368096ea0805e51e20df587ce528ca0575b))
+* support manual commit ranges ([#1486](https://github.com/conventional-changelog/conventional-changelog/issues/1486)) ([45e1a20](https://github.com/conventional-changelog/conventional-changelog/commit/45e1a20110226e7aebaea8dd3cec7ef5e3eaf4db))
+
+### Bug Fixes
+
+* explain missing bump config ([e3bd09f](https://github.com/conventional-changelog/conventional-changelog/commit/e3bd09f8ea2bedd7b85a562d1fa8cfa3649602c5))
+
 ## [11.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-recommended-bump-v11.1.0...conventional-recommended-bump-v11.2.0) (2025-06-07)
 
 ### Features

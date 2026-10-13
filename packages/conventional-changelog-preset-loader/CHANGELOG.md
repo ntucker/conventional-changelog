@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.0.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-preset-loader-v6.0.0...conventional-changelog-preset-loader-v6.0.1) (2026-07-04)
+
+### Bug Fixes
+
+* point package homepages and docs to documentation website ([04796e2](https://github.com/conventional-changelog/conventional-changelog/commit/04796e22a649a14647feea99b445df2eb1c3acad))
+
+## [6.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-preset-loader-v5.0.0...conventional-changelog-preset-loader-v6.0.0) (2026-06-26)
+
+### ⚠ BREAKING CHANGES
+
+* packages now require Node.js 22 or newer.
+
+### Features
+
+* require node 22 ([de5e136](https://github.com/conventional-changelog/conventional-changelog/commit/de5e1368096ea0805e51e20df587ce528ca0575b))
+
 ## [5.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-preset-loader-v4.1.0...conventional-changelog-preset-loader-v5.0.0) (2024-04-26)
 
 ### ⚠ BREAKING CHANGES

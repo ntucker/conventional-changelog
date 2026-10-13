@@ -1,10 +1,7 @@
 import scopes from '@commitlint/config-pnpm-scopes'
 
 export default {
-  extends: [
-    '@commitlint/config-conventional',
-    '@commitlint/config-pnpm-scopes'
-  ],
+  extends: ['@commitlint/config-conventional', '@commitlint/config-pnpm-scopes'],
   rules: {
     'body-max-line-length': [0],
     'header-max-length': [0],
@@ -18,7 +15,8 @@ export default {
           ...scopeEnum[2],
           'deps',
           'dev-deps',
-          'release'
+          'release',
+          'conventional-commit-message'
         ]
       ]
     }

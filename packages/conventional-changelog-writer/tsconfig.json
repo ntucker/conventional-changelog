@@ -1,8 +1,15 @@
 {
   "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "rootDir": "../../",
+    "allowJs": true
+  },
   "include": [
     "src",
-    "templates"
+    "templates",
+    "test",
+    "*.ts",
+    "*.js"
   ],
   "exclude": []
 }

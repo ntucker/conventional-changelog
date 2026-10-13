@@ -1,5 +1,14 @@
-import { describe, beforeAll, afterAll, it, expect } from 'vitest'
-import { TestTools, toArray } from '../../../tools/index.js'
+import {
+  describe,
+  beforeAll,
+  afterAll,
+  it,
+  expect
+} from 'vitest'
+import {
+  TestTools,
+  toArray
+} from '../../../tools/index.js'
 import {
   ConventionalGitClient,
   packagePrefix
@@ -52,8 +61,38 @@ describe('git-client', () => {
         ])
       })
 
+      it('should pass git tag log params', async () => {
+        const tagsStream = client.getSemverTags({
+          from: 'HEAD~2'
+        })
+        const tags = await toArray(tagsStream)
+
+        expect(tags).toEqual(['v18.0.0'])
+      })
+
+      it('should get semver tag if a commit has a preceding non-semver tag', async () => {
+        testTools.writeFileSync('test5', '1')
+        testTools.exec('git add --all && git commit -m"chore: multiple tags"')
+        testTools.exec('git tag deployed-to-staging-1.15.0')
+        testTools.exec('git tag 1.15.0')
+
+        const tagsStream = client.getSemverTags()
+        const tags = await toArray(tagsStream)
+
+        expect(tags).toEqual([
+          '1.15.0',
+          'v18.0.0',
+          'v15.0.0',
+          'v12.0.0',
+          'v9.0.0',
+          'v6.0.0',
+          'v3.0.0',
+          'v0.0.0'
+        ])
+      })
+
       it('should work with prerelease', async () => {
-        testTools.writeFileSync('test5', '')
+        testTools.writeFileSync('test5', '2')
         testTools.exec('git add --all && git commit -m"chore: prerelease"')
         testTools.exec('git tag 19.0.0-pre')
 
@@ -62,6 +101,7 @@ describe('git-client', () => {
 
         expect(tags).toEqual([
           '19.0.0-pre',
+          '1.15.0',
           'v18.0.0',
           'v15.0.0',
           'v12.0.0',
@@ -73,10 +113,10 @@ describe('git-client', () => {
       })
 
       it('should work with lerna style tags', async () => {
-        testTools.writeFileSync('test5', '2')
+        testTools.writeFileSync('test5', '3')
         testTools.exec('git add --all && git commit -m"chore: foo-project@4.0.0"')
         testTools.exec('git tag foo-project@4.0.0')
-        testTools.writeFileSync('test5', '3')
+        testTools.writeFileSync('test5', '4')
         testTools.exec('git add --all && git commit -m"chore: bar-project@5.0.0"')
         testTools.exec('git tag bar-project@5.0.0')
 
@@ -165,6 +205,35 @@ describe('git-client', () => {
         const tags = await toArray(tagsStream)
 
         expect(tags).toEqual(['skip/9.0.0', 'skip/8.0.0'])
+      })
+
+      it('should skip unstable tags if a commit has stable and unstable tags', async () => {
+        testTools.writeFileSync('test14', '')
+        testTools.exec('git add --all && git commit -m"chore: same commit tags"')
+        testTools.exec('git tag same/3.1.0-alpha.1')
+        testTools.exec('git tag same/3.1.0')
+
+        const tagsStream = client.getSemverTags({
+          prefix: 'same/',
+          skipUnstable: true
+        })
+        const tags = await toArray(tagsStream)
+
+        expect(tags).toEqual(['same/3.1.0'])
+      })
+
+      it('should not skip stable tags with build metadata', async () => {
+        testTools.writeFileSync('test15', '')
+        testTools.exec('git add --all && git commit -m"chore: build metadata"')
+        testTools.exec('git tag meta/1.0.0+build.1.2.3-foo')
+
+        const tagsStream = client.getSemverTags({
+          prefix: 'meta/',
+          skipUnstable: true
+        })
+        const tags = await toArray(tagsStream)
+
+        expect(tags).toEqual(['meta/1.0.0+build.1.2.3-foo'])
       })
     })
 

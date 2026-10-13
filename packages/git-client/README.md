@@ -18,7 +18,7 @@
 [node-url]: https://nodejs.org
 
 [deps]: https://img.shields.io/librariesio/release/npm/@conventional-changelog/git-client
-[deps-url]: https://libraries.io/npm/@conventional-changelog%2Fgit-client/tree
+[deps-url]: https://libraries.io/npm/@conventional-changelog%2Fgit-client
 
 [size]: https://packagephobia.com/badge?p=@conventional-changelog/git-client
 [size-url]: https://packagephobia.com/result?p=@conventional-changelog/git-client
@@ -30,15 +30,6 @@
 [coverage-url]: https://coveralls.io/github/conventional-changelog/conventional-changelog?branch=master
 
 Simple git client for conventional changelog packages.
-
-<hr />
-<a href="#install">Install</a>
-<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="#usage">Usage</a>
-<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="#api">API</a>
-<br />
-<hr />
 
 ## Install
 
@@ -75,75 +66,9 @@ const conventionalClient = new ConventionalGitClient(process.cwd())
 console.log(await conventionalClient.getVersionFromTags()) // v1.0.0
 ```
 
-## API
+## Documentation
 
-### `new GitClient(cwd: string)`
-
-Create a wrapper around `git` CLI instance.
-
-#### `getRawCommits(params?: GitLogParams): AsyncIterable<string>`
-
-Get raw commits stream.
-
-#### `getTags(): AsyncIterable<string>`
-
-Get tags stream.
-
-#### `getLastTag(): Promise<string>`
-
-Get last tag.
-
-#### `checkIgnore(file: string): Promise<boolean>`
-
-Check file is ignored via .gitignore.
-
-#### `add(files: string | string[]): Promise<void>`
-
-Add files to git index.
-
-#### `commit(params: GitCommitParams): Promise<void>`
-
-Commit changes.
-
-#### `tag(params: GitTagParams): Promise<void>`
-
-Create a tag for the current commit.
-
-#### `getCurrentBranch(): Promise<string>`
-
-Get current branch name.
-
-#### `push(branch: string): Promise<void>`
-
-Push changes to remote.
-
-#### `verify(rev: string): Promise<string>`
-
-Verify rev exists.
-
-#### `getConfig(key: string): Promise<string>`
-
-Get config value by key.
-
-### `new ConventionalGitClient(cwd: string)`
-
-Wrapper around Git CLI with conventional commits support.
-
-#### `getCommits(params?: ConventionalGitLogParams, parserOptions?: ParserStreamOptions): AsyncIterable<Commit>`
-
-Get parsed commits stream.
-
-#### `getSemverTags(params?: GitTagsLogParams): AsyncIterable<string>`
-
-Get semver tags stream.
-
-#### `getLastSemverTag(params?: GetSemverTagsParam): Promise<string>`
-
-Get last semver tag.
-
-#### `getVersionFromTags(params?: GetSemverTagsParams): Promise<string | null>`
-
-Get current sematic version from git tags.
+For the API reference, visit the [documentation website](https://conventional-changelog.js.org/git-client/).
 
 ## License
 

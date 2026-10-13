@@ -20,7 +20,9 @@ export const defaultOptions: ParserOptions = {
     'scope',
     'subject'
   ],
-  revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\./,
+  revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\.?/,
   revertCorrespondence: ['header', 'hash'],
-  fieldPattern: /^-(.*?)-$/
+  // The field name must contain at least one word character so that
+  // YAML document markers like `---` are not treated as field markers.
+  fieldPattern: /^-(?=.*\w)(.*?)-$/
 }

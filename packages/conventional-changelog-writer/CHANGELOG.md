@@ -3,6 +3,71 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [9.3.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v9.2.1...conventional-changelog-writer-v9.3.0) (2026-10-05)
+
+### Features
+
+* replace `semver` with `verkit` ([#1555](https://github.com/conventional-changelog/conventional-changelog/issues/1555)) ([96d685e](https://github.com/conventional-changelog/conventional-changelog/commit/96d685e482272237b00713fb7e9ce5f3fdc755fc))
+
+### Bug Fixes
+
+* don't crash on a commit type named after an Object.prototype member ([#1559](https://github.com/conventional-changelog/conventional-changelog/issues/1559)) ([f05b2ec](https://github.com/conventional-changelog/conventional-changelog/commit/f05b2ec620d294cc27b37b262379c86ecc9746ec)), closes [#1544](https://github.com/conventional-changelog/conventional-changelog/issues/1544)
+
+## [9.2.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v9.2.0...conventional-changelog-writer-v9.2.1) (2026-08-10)
+
+### Bug Fixes
+
+* use current host url paths ([#1534](https://github.com/conventional-changelog/conventional-changelog/issues/1534)) ([612d368](https://github.com/conventional-changelog/conventional-changelog/commit/612d36822d3f0bf4c3041e85d19175faf55da7cf)), closes [#986](https://github.com/conventional-changelog/conventional-changelog/issues/986)
+
+## [9.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v9.1.1...conventional-changelog-writer-v9.2.0) (2026-07-09)
+
+### Features
+
+* replace `meow` with `argue-cli` ([#1505](https://github.com/conventional-changelog/conventional-changelog/issues/1505)) ([1ad6177](https://github.com/conventional-changelog/conventional-changelog/commit/1ad6177da0b9da2df4fffc41e0b6caf9b76bf200))
+
+## [9.1.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v9.1.0...conventional-changelog-writer-v9.1.1) (2026-07-04)
+
+### Bug Fixes
+
+* point package homepages and docs to documentation website ([04796e2](https://github.com/conventional-changelog/conventional-changelog/commit/04796e22a649a14647feea99b445df2eb1c3acad))
+
+## [9.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v9.0.0...conventional-changelog-writer-v9.1.0) (2026-06-27)
+
+### Features
+
+* support changelog preamble partial ([#1491](https://github.com/conventional-changelog/conventional-changelog/issues/1491)) ([e93dbe4](https://github.com/conventional-changelog/conventional-changelog/commit/e93dbe4a16bb621c6ae9d1082dcd09d34c6f8136))
+
+## [9.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v8.4.0...conventional-changelog-writer-v9.0.0) (2026-06-26)
+
+### ⚠ BREAKING CHANGES
+
+* Handlebars template strings and partial files were replaced with render functions.
+* packages now require Node.js 22 or newer.
+
+### Features
+
+* replace handlebars templates with render functions ([#1477](https://github.com/conventional-changelog/conventional-changelog/issues/1477)) ([55e6716](https://github.com/conventional-changelog/conventional-changelog/commit/55e6716e8f40c2a705bcb0cd343e1dcacd2f9459))
+* require node 22 ([de5e136](https://github.com/conventional-changelog/conventional-changelog/commit/de5e1368096ea0805e51e20df587ce528ca0575b))
+
+## [8.4.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v8.3.0...conventional-changelog-writer-v8.4.0) (2026-03-04)
+
+### Features
+
+* inline hbs templates in code as strings ([#1434](https://github.com/conventional-changelog/conventional-changelog/issues/1434)) ([0d5a4a6](https://github.com/conventional-changelog/conventional-changelog/commit/0d5a4a68b0ba79a3c97793395c6549af02272325))
+
+## [8.3.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v8.2.0...conventional-changelog-writer-v8.3.0) (2026-03-01)
+
+### Features
+
+* align newline formatting across presets ([#1431](https://github.com/conventional-changelog/conventional-changelog/issues/1431)) ([b0721e1](https://github.com/conventional-changelog/conventional-changelog/commit/b0721e1d6c30b03e54d4fa5e271ecb67b5ae7ebe))
+* use utils from simple-libs ([#1432](https://github.com/conventional-changelog/conventional-changelog/issues/1432)) ([7d27d06](https://github.com/conventional-changelog/conventional-changelog/commit/7d27d0673878b995e9c0c82641d9d70eb9561024))
+
+## [8.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v8.1.0...conventional-changelog-writer-v8.2.0) (2025-07-09)
+
+### Features
+
+* add skip option for skipping commits when writing changelog ([#1346](https://github.com/conventional-changelog/conventional-changelog/issues/1346)) ([b3e3042](https://github.com/conventional-changelog/conventional-changelog/commit/b3e3042a2a9fc9877f279e36dead38af51c233a2)), closes [#1179](https://github.com/conventional-changelog/conventional-changelog/issues/1179) [#342](https://github.com/conventional-changelog/conventional-changelog/issues/342)
+
 ## [8.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-writer-v8.0.1...conventional-changelog-writer-v8.1.0) (2025-05-19)
 
 ### Features

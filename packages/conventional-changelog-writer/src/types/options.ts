@@ -1,46 +1,36 @@
 import type {
-  Comparator,
-  PickStringsKeys
-} from './utils.js'
-import type {
   CommitKnownProps,
   CommitGroup,
   CommitNote,
-  NoteGroup
-} from './commit.js'
-import type { FinalContext } from './context.js'
+  NoteGroup,
+  FinalTemplateContext,
+  HeaderPartialFunction,
+  PreamblePartialFunction,
+  CommitPartialFunction,
+  FooterPartialFunction
+} from '@conventional-changelog/template'
+import type {
+  Comparator,
+  PickStringsKeys
+} from './utils.js'
 
 export type SortBy<T> = PickStringsKeys<T> | PickStringsKeys<T>[] | Comparator<T>
 
 export type CommitTransformFunction<Commit extends CommitKnownProps = CommitKnownProps> =
-  (commit: Commit, context: FinalContext<Commit>, options: FinalOptions<Commit>) => Partial<Commit> | null | Promise<Partial<Commit> | null>
+  (commit: Commit, context: FinalTemplateContext<Commit>, options: FinalOptions<Commit>) => Partial<Commit> | null | Promise<Partial<Commit> | null>
 
 export type GenerateOnFunction<Commit extends CommitKnownProps = CommitKnownProps> =
   (
     keyCommit: Commit,
     commitsGroup: Commit[],
-    context: FinalContext<Commit>,
+    context: FinalTemplateContext<Commit>,
     options: FinalOptions<Commit>
   ) => boolean
 
-export interface TemplatesOptions {
-  mainTemplate?: string
-  headerPartial?: string
-  commitPartial?: string
-  footerPartial?: string
-  partials?: Record<string, string | null>
-}
+export type TemplateFunction<Commit extends CommitKnownProps = CommitKnownProps> =
+  (context: FinalTemplateContext<Commit>) => string | Promise<string>
 
-type RequiredTemplatesOptions = Required<TemplatesOptions>
-
-export interface FinalTemplatesOptions extends TemplatesOptions {
-  mainTemplate: RequiredTemplatesOptions['mainTemplate']
-  headerPartial: RequiredTemplatesOptions['headerPartial']
-  commitPartial: RequiredTemplatesOptions['commitPartial']
-  footerPartial: RequiredTemplatesOptions['footerPartial']
-}
-
-export interface Options<Commit extends CommitKnownProps = CommitKnownProps> extends TemplatesOptions {
+export interface Options<Commit extends CommitKnownProps = CommitKnownProps> {
   /**
    * Key to group commits by.
    * If this value is falsy, commits are not grouped.
@@ -89,6 +79,26 @@ export interface Options<Commit extends CommitKnownProps = CommitKnownProps> ext
    */
   generateOn?: GenerateOnFunction<Commit> | keyof Commit | null
   /**
+   * Function that renders the prepared changelog context to text.
+   */
+  template?: TemplateFunction<Commit>
+  /**
+   * Function that renders the release header.
+   */
+  headerPartial?: HeaderPartialFunction<Commit>
+  /**
+   * Function that renders introductory text after the release header.
+   */
+  preamblePartial?: PreamblePartialFunction<Commit>
+  /**
+   * Function that renders a single commit entry.
+   */
+  commitPartial?: CommitPartialFunction<Commit>
+  /**
+   * Function that renders release footer notes.
+   */
+  footerPartial?: FooterPartialFunction<Commit>
+  /**
    * Last chance to modify your context before generating a changelog.
    * @param context
    * @param options
@@ -97,12 +107,12 @@ export interface Options<Commit extends CommitKnownProps = CommitKnownProps> ext
    * @param commits
    */
   finalizeContext?(
-    context: FinalContext<Commit>,
+    context: FinalTemplateContext<Commit>,
     options: FinalOptions<Commit>,
     filteredCommits: Commit[],
     keyCommit: Commit | null,
     commits: Commit[]
-  ): FinalContext<Commit> | Promise<FinalContext<Commit>>
+  ): FinalTemplateContext<Commit> | Promise<FinalTemplateContext<Commit>>
   /**
    * A function to get debug information.
    * @param message - The debug message.
@@ -114,6 +124,12 @@ export interface Options<Commit extends CommitKnownProps = CommitKnownProps> ext
    * @returns Final date string.
    */
   formatDate?(date: string | Date): string
+  /**
+   * A function that will determine if a commit should be skipped by the writer
+   * @param commit - The commit in question
+   * @returns boolean. If true, don't write the current commit
+   */
+  skip?(commit: Commit): boolean
 }
 
 type RequiredOptions<Commit extends CommitKnownProps = CommitKnownProps> = Required<Options<Commit>>
@@ -125,12 +141,14 @@ export interface FinalOptions<Commit extends CommitKnownProps = CommitKnownProps
   debug: RequiredOptions<Commit>['debug']
   formatDate: RequiredOptions<Commit>['formatDate']
   transform: RequiredOptions<Commit>['transform']
+  template: RequiredOptions<Commit>['template']
+  headerPartial: RequiredOptions<Commit>['headerPartial']
+  preamblePartial: RequiredOptions<Commit>['preamblePartial']
+  commitPartial: RequiredOptions<Commit>['commitPartial']
+  footerPartial: RequiredOptions<Commit>['footerPartial']
   commitsSort?: Comparator<Commit>
   commitGroupsSort?: Comparator<CommitGroup<Commit>>
   notesSort?: Comparator<CommitNote>
   noteGroupsSort?: Comparator<NoteGroup>
-  mainTemplate: FinalTemplatesOptions['mainTemplate']
-  headerPartial: FinalTemplatesOptions['headerPartial']
-  commitPartial: FinalTemplatesOptions['commitPartial']
-  footerPartial: FinalTemplatesOptions['footerPartial']
+  skip?: Options<Commit>['skip']
 }

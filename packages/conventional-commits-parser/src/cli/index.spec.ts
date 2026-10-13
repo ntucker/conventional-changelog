@@ -1,6 +1,11 @@
-import fs from 'fs/promises'
 import path from 'path'
-import { describe, beforeAll, afterAll, it, expect } from 'vitest'
+import {
+  describe,
+  beforeAll,
+  afterAll,
+  it,
+  expect
+} from 'vitest'
 import { TestTools } from '../../../../tools/index.js'
 
 const CLI_PATH = path.join(__dirname, './index.ts')
@@ -90,6 +95,14 @@ describe('conventional-commits-parser', () => {
           prefix: '#'
         },
         {
+          action: 'Close',
+          owner: null,
+          repository: null,
+          issue: '10000',
+          raw: ', Closes #10000',
+          prefix: '#'
+        },
+        {
           action: null,
           issue: '13233',
           owner: null,
@@ -117,12 +130,7 @@ describe('conventional-commits-parser', () => {
 
     it('should work if it is not a tty', async () => {
       const { stdout } = await testTools.fork(CLI_PATH, [], {
-        stdio: [
-          (await fs.open(path.join(FIXTURES_PATH, 'log1.txt'), 'r')).fd,
-          null,
-          null,
-          'ipc'
-        ]
+        stdinFile: path.join(FIXTURES_PATH, 'log1.txt')
       })
 
       expect(stdout).toContain('"type":"feat","scope":"ngMessages","subject":"provide support for dynamic message resolution"')
@@ -130,12 +138,7 @@ describe('conventional-commits-parser', () => {
 
     it('should separate if it is not a tty', async () => {
       const { stdout } = await testTools.fork(CLI_PATH, ['-s', '==='], {
-        stdio: [
-          (await fs.open(path.join(FIXTURES_PATH, 'log2.txt'), 'r')).fd,
-          null,
-          null,
-          'ipc'
-        ]
+        stdinFile: path.join(FIXTURES_PATH, 'log2.txt')
       })
 
       expect(stdout).toContain('"type":"docs","scope":"ngMessageExp","subject":"split ngMessage docs up to show its alias more clearly"')
@@ -144,15 +147,10 @@ describe('conventional-commits-parser', () => {
 
     it('should error if it is not a tty and commit cannot be parsed', async () => {
       const { stderr } = await testTools.fork(CLI_PATH, [], {
-        stdio: [
-          (await fs.open(path.join(FIXTURES_PATH, 'bad_commit.txt'), 'r')).fd,
-          null,
-          null,
-          'ipc'
-        ]
+        stdinFile: path.join(FIXTURES_PATH, 'bad_commit.txt')
       })
 
       expect(stderr).toContain('TypeError: Expected a raw commit\n')
     })
-  })
+  }, 15_000)
 })

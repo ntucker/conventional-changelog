@@ -1,4 +1,9 @@
-import { vitest, describe, it, expect } from 'vitest'
+import {
+  vitest,
+  describe,
+  it,
+  expect
+} from 'vitest'
 import { createPresetLoader } from './index.js'
 
 const mockModuleLoader = () => () => ({})
@@ -96,25 +101,25 @@ describe('conventional-changelog-preset-loader', () => {
       it('should load package with an absolute file path', async () => {
         const requireMethod = vitest.fn(mockModuleLoader)
         const load = createPresetLoader(requireMethod)
-        const filePath = require.resolve('conventional-changelog-angular')
+        const filePath = import.meta.resolve('conventional-changelog-angular')
 
         await load(filePath)
 
         expect(requireMethod).toHaveBeenCalledTimes(1)
-        expect(requireMethod).toHaveBeenCalledWith(filePath)
+        expect(requireMethod).toHaveBeenCalledWith(filePath.replace('file://', 'conventional-changelog-file://').toLowerCase())
       })
 
       it('should load package with an absolute file path name', async () => {
         const requireMethod = vitest.fn(mockModuleLoader)
         const load = createPresetLoader(requireMethod)
-        const filePath = require.resolve('conventional-changelog-angular')
+        const filePath = import.meta.resolve('conventional-changelog-angular')
 
         await load({
           name: filePath
         })
 
         expect(requireMethod).toHaveBeenCalledTimes(1)
-        expect(requireMethod).toHaveBeenCalledWith(filePath)
+        expect(requireMethod).toHaveBeenCalledWith(filePath.replace('file://', 'conventional-changelog-file://').toLowerCase())
       })
 
       it('should load package in @conventional-changelog scope', async () => {

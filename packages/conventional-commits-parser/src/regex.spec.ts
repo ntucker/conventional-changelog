@@ -1,4 +1,9 @@
-import { describe, afterEach, it, expect } from 'vitest'
+import {
+  describe,
+  afterEach,
+  it,
+  expect
+} from 'vitest'
 import { getParserRegexes } from './regex.js'
 
 describe('conventional-commits-parser', () => {
@@ -76,6 +81,104 @@ describe('conventional-commits-parser', () => {
           const match = 'BREAKING CHANGES: Wow.'.match(notes)
 
           expect(match).toBe(null)
+        })
+
+        it('should not match keywords without a colon or with leading whitespace (#1515)', () => {
+          const { notes } = getParserRegexes({
+            noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE']
+          })
+
+          expect('breaking-change footers'.match(notes)).toBe(null)
+          expect('  breaking-change footers'.match(notes)).toBe(null)
+          expect('  BREAKING CHANGE: indented'.match(notes)).toBe(null)
+        })
+
+        it('should match keywords prefixed with a `* ` bullet (squash commits)', () => {
+          const { notes } = getParserRegexes({
+            noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE']
+          })
+          const match = '* BREAKING CHANGE: So important.'.match(notes)
+
+          expect(match?.[1]).toBe('BREAKING CHANGE')
+          expect(match?.[2]).toBe('So important.')
+          expect('* BREAKING CHANGE:'.match(notes)?.[2]).toBe('')
+        })
+
+        it('should escape regex special chars when used inside `noteKeywords`', () => {
+          const noteKeywordsSpecialChars = [
+            '[1]',
+            '(2)',
+            '{3}',
+            '.4',
+            '*5',
+            '+6',
+            '?7',
+            '^8',
+            '$9'
+          ]
+          const { notes } = getParserRegexes({
+            noteKeywords: noteKeywordsSpecialChars,
+            issuePrefixes: ['#']
+          })
+
+          noteKeywordsSpecialChars.forEach((keyword) => {
+            const match = `${keyword}: footer`.match(notes)
+
+            expect(match).toMatchObject({
+              0: `${keyword}: footer`,
+              1: keyword,
+              2: 'footer'
+            })
+          })
+        })
+      })
+
+      describe('footerToken', () => {
+        it('should match footer tokens with colon separator', () => {
+          const { footerToken } = getParserRegexes()
+
+          expect('Reviewed-by: Z').toMatch(footerToken)
+          expect('BREAKING CHANGE: changed API').toMatch(footerToken)
+          expect('BREAKING-CHANGE: changed API').toMatch(footerToken)
+        })
+
+        it('should match footer tokens with issue separator', () => {
+          const { footerToken } = getParserRegexes({
+            issuePrefixes: ['#']
+          })
+
+          expect('Fixes #1476.').toMatch(footerToken)
+          expect('Kills   #1').toMatch(footerToken)
+          expect('Refs #123').toMatch(footerToken)
+        })
+
+        it('should not match footer tokens with issue separator if issue prefixes are not configured', () => {
+          const { footerToken } = getParserRegexes()
+
+          expect('Fixes #1476.').not.toMatch(footerToken)
+          expect('Refs: #1476.').toMatch(footerToken)
+        })
+
+        it('should match footer tokens with custom issue prefixes', () => {
+          const { footerToken } = getParserRegexes({
+            issuePrefixes: ['gh-']
+          })
+
+          expect('Kills gh-1').toMatch(footerToken)
+        })
+
+        it('should not match footer-like text inside sentences', () => {
+          const { footerToken } = getParserRegexes()
+
+          expect('This fixes #1476.').not.toMatch(footerToken)
+          expect('Reviewed by: Z').not.toMatch(footerToken)
+        })
+
+        it('should not match indented `key: value` lines (#1512)', () => {
+          const { footerToken } = getParserRegexes()
+
+          expect('  dependency-version: 2.0.0').not.toMatch(footerToken)
+          expect('  dependency-type: direct:development').not.toMatch(footerToken)
         })
       })
 
@@ -170,6 +273,31 @@ describe('conventional-commits-parser', () => {
           expect(match?.[2]).toBe('bug #4')
         })
 
+        it('should not match keywords inside words', () => {
+          const { references } = getParserRegexes({
+            referenceActions: ['fix', 'resolved']
+          })
+
+          expect('prefix #1'.match(references)).toBe(null)
+          expect('unresolved #2'.match(references)).toBe(null)
+        })
+
+        it('should not stop at words starting with a keyword', () => {
+          const { references } = getParserRegexes({
+            referenceActions: ['Closes', 'fix']
+          })
+
+          expect('Closes #1 and fixups #2'.match(references)).toEqual(['Closes #1 and fixups #2'])
+        })
+
+        it('should not match a keyword followed by a colon', () => {
+          const { references } = getParserRegexes({
+            referenceActions: ['Closes']
+          })
+
+          expect('Closes: #1'.match(references)).toBe(null)
+        })
+
         it('should reference an issue without an action', () => {
           const { references } = getParserRegexes()
           const body = 'gh-1, prefix-3, Closes gh-6'
@@ -197,6 +325,56 @@ describe('conventional-commits-parser', () => {
             'amends #2, ',
             'fixes #3'
           ])
+        })
+
+        it('should escape regex special chars when used inside `referenceActions`', () => {
+          const referenceActionsSpecialChars = [
+            '[close]',
+            '(fix)',
+            '{resolve}',
+            '.closes',
+            '*merge',
+            '+amend',
+            '?fix',
+            '^resolve',
+            '$close'
+          ]
+          const { references } = getParserRegexes({
+            referenceActions: referenceActionsSpecialChars,
+            issuePrefixes: ['#']
+          })
+
+          referenceActionsSpecialChars.forEach((action) => {
+            const match = `${action} #1`.match(references)
+
+            expect(match).toMatchObject({
+              0: `${action} #1`
+            })
+          })
+        })
+      })
+
+      describe('footerReferences', () => {
+        it('should match a keyword followed by a colon', () => {
+          const { footerReferences } = getParserRegexes({
+            referenceActions: ['Closes', 'Fixes']
+          })
+          const match = footerReferences.exec('Closes: #1')
+
+          expect(match?.[0]).toBe('Closes: #1')
+          expect(match?.[1]).toBe('Closes')
+          expect(match?.[2]).toBe('#1')
+          expect('Closes: #1 Fixes: #2'.match(footerReferences)).toEqual(['Closes: #1 ', 'Fixes: #2'])
+        })
+
+        it('should match a keyword without a colon', () => {
+          const { footerReferences } = getParserRegexes({
+            referenceActions: ['Closes']
+          })
+          const match = footerReferences.exec('Closes #1')
+
+          expect(match?.[1]).toBe('Closes')
+          expect(match?.[2]).toBe('#1')
         })
       })
 
@@ -257,6 +435,15 @@ describe('conventional-commits-parser', () => {
           expect(match?.[1]).toBe(undefined)
           expect(match?.[2]).toBe('#')
           expect(match?.[3]).toBe('JIRA-123')
+        })
+
+        it('should match ClickUp-style reference parts ending with letters', () => {
+          const match = referenceParts.exec('#CU-123abc')
+
+          expect(match?.[0]).toBe('#CU-123abc')
+          expect(match?.[1]).toBe(undefined)
+          expect(match?.[2]).toBe('#')
+          expect(match?.[3]).toBe('CU-123abc')
         })
 
         it('should not match MY-€#%#&-123 mixed symbol reference parts', () => {
@@ -334,6 +521,31 @@ describe('conventional-commits-parser', () => {
           const match = referenceParts.exec(body)
 
           expect(match).toBe(null)
+        })
+
+        it('should escape regex special chars when used inside `issuePrefixes`', () => {
+          const issuePrefixesSpecialChars = [
+            '[#]',
+            '(#)',
+            '{#}',
+            '.#',
+            '*#',
+            '+#',
+            '?#',
+            '^#',
+            '$'
+          ]
+          const { referenceParts } = getParserRegexes({
+            issuePrefixes: issuePrefixesSpecialChars
+          })
+
+          issuePrefixesSpecialChars.forEach((prefix) => {
+            const match = `${prefix}1`.match(referenceParts)
+
+            expect(match).toMatchObject({
+              0: `${prefix}1`
+            })
+          })
         })
       })
 

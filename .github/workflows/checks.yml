@@ -9,7 +9,7 @@ jobs:
     name: editorconfig
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Check editorconfig
         uses: editorconfig-checker/action-editorconfig-checker@main
   package-json:
@@ -17,15 +17,15 @@ jobs:
     name: package.json
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 12
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 18
+          node-version-file: .tool-versions
           cache: 'pnpm'
       - name: Check package.json files
         run: pnpm --package=@trigen/lint-package-json dlx lint-package-json --monorepo

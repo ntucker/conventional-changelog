@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-import meow from 'meow'
+import { readFile } from 'fs/promises'
 import {
-  flags,
+  readFlags,
   runProgram
 } from 'conventional-changelog'
 import { StandardChangelog } from './index.js'
 
-const cli = meow(`
+const HELP = `
   Usage
     standard-changelog
 
@@ -31,13 +31,28 @@ const cli = meow(`
     -l, --lerna-package       Generate a changelog for a specific lerna package (:pkg-name@1.0.0)
     -t, --tag-prefix          Tag prefix to consider when reading the tags
     --commit-path             Generate a changelog scoped to a specific directory
-`, {
-  importMeta: import.meta,
-  booleanDefault: undefined,
-  flags
-})
+    --from                    Start commit range from a specific tag or sha
+    --to                      End commit range at a specific tag or sha
+`
+const flags = readFlags()
+
+if (flags.help || flags.version) {
+  const pkg = JSON.parse(
+    await readFile(new URL('../package.json', import.meta.url), 'utf8')
+  ) as {
+    version: string
+    description: string
+  }
+
+  console.log(
+    flags.help
+      ? `\n  ${pkg.description}\n${HELP}`
+      : pkg.version
+  )
+  process.exit(0)
+}
 
 await runProgram(
   new StandardChangelog(process.cwd()),
-  cli.flags
+  flags
 )

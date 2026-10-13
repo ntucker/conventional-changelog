@@ -1,7 +1,7 @@
 {
   "name": "@conventional-changelog/git-client",
   "type": "module",
-  "version": "2.5.1",
+  "version": "3.2.0",
   "description": "Simple git client for conventional changelog packages.",
   "author": {
     "name": "Dan Onoshko",
@@ -9,7 +9,7 @@
     "url": "https://github.com/dangreen"
   },
   "license": "MIT",
-  "homepage": "https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/git-client#readme",
+  "homepage": "https://conventional-changelog.js.org/git-client/",
   "repository": {
     "type": "git",
     "url": "https://github.com/conventional-changelog/conventional-changelog.git",
@@ -25,7 +25,7 @@
     "changelog"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "exports": "./src/index.ts",
   "publishConfig": {
@@ -61,12 +61,11 @@
     }
   },
   "dependencies": {
-    "@simple-libs/child-process-utils": "^1.0.0",
-    "@simple-libs/stream-utils": "^1.1.0",
-    "semver": "^7.5.2"
+    "@simple-libs/child-process-utils": "^2.0.0",
+    "@simple-libs/stream-utils": "catalog:",
+    "verkit": "catalog:"
   },
   "devDependencies": {
-    "@types/semver": "^7.5.8",
     "conventional-commits-filter": "workspace:^",
     "conventional-commits-parser": "workspace:^"
   }

@@ -1,6 +1,9 @@
 import type { ParserStreamOptions } from 'conventional-commits-parser'
-import type { GetCommitsParams, GetSemverTagsParams } from '@conventional-changelog/git-client'
-import { packagePrefix } from '@conventional-changelog/git-client'
+import {
+  type GetCommitsParams,
+  type GetSemverTagsParams,
+  packagePrefix
+} from '@conventional-changelog/git-client'
 
 function trim(str: string) {
   return str.trim()
@@ -33,6 +36,14 @@ export function parseCommitsOptions(options: Record<string, unknown>): GetCommit
 
   if (typeof options.commitPath === 'string') {
     result.path = options.commitPath
+  }
+
+  if (typeof options.from === 'string') {
+    result.from = options.from
+  }
+
+  if (typeof options.to === 'string') {
+    result.to = options.to
   }
 
   if (!Object.keys(result).length) {

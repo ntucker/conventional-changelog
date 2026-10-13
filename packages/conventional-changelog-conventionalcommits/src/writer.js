@@ -1,100 +1,74 @@
-import { readFile } from 'fs/promises'
-import { resolve } from 'path'
-import { fileURLToPath } from 'url'
-import compareFunc from 'compare-func'
+import {
+  createLegacyWriterGuard,
+  createReferencesFormatter
+} from '@conventional-changelog/template'
 import { DEFAULT_COMMIT_TYPES } from './constants.js'
-import { matchScope } from './utils.js'
+import {
+  findTypeEntry,
+  getNotes,
+  isTypeEffect,
+  matchScope
+} from './utils.js'
+import {
+  template,
+  headerPartial,
+  preamblePartial,
+  commitPartial,
+  footerPartial
+} from './templates.js'
+import * as format from './format.js'
 
-const dirname = fileURLToPath(new URL('.', import.meta.url))
 const COMMIT_HASH_LENGTH = 7
 const releaseAsRegex = /release-as:\s*\w*@?([0-9]+\.[0-9]+\.[0-9a-z]+(-[0-9a-z.]+)?)\s*/i
-/**
- * Handlebar partials for various property substitutions based on commit context.
- */
-const owner = '{{#if this.owner}}{{~this.owner}}{{else}}{{~@root.owner}}{{/if}}'
-const host = '{{~@root.host}}'
-const repository = '{{#if this.repository}}{{~this.repository}}{{else}}{{~@root.repository}}{{/if}}'
 
-export async function createWriterOpts(config) {
-  const finalConfig = {
-    types: DEFAULT_COMMIT_TYPES,
-    issueUrlFormat: '{{host}}/{{owner}}/{{repository}}/issues/{{id}}',
-    commitUrlFormat: '{{host}}/{{owner}}/{{repository}}/commit/{{hash}}',
-    compareUrlFormat: '{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}',
-    userUrlFormat: '{{host}}/{{user}}',
-    issuePrefixes: ['#'],
-    ...config
-  }
-  const commitUrlFormat = expandTemplate(finalConfig.commitUrlFormat, {
-    host,
-    owner,
-    repository
-  })
-  const compareUrlFormat = expandTemplate(finalConfig.compareUrlFormat, {
-    host,
-    owner,
-    repository
-  })
-  const issueUrlFormat = expandTemplate(finalConfig.issueUrlFormat, {
-    host,
-    owner,
-    repository,
-    id: '{{this.issue}}',
-    prefix: '{{this.prefix}}'
-  })
-  const [
-    template,
-    header,
-    commit,
-    footer
-  ] = await Promise.all([
-    readFile(resolve(dirname, './templates/template.hbs'), 'utf-8'),
-    readFile(resolve(dirname, './templates/header.hbs'), 'utf-8'),
-    readFile(resolve(dirname, './templates/commit.hbs'), 'utf-8'),
-    readFile(resolve(dirname, './templates/footer.hbs'), 'utf-8')
-  ])
-  const writerOpts = getWriterOpts(finalConfig)
-
-  writerOpts.mainTemplate = template
-  writerOpts.headerPartial = header
-    .replace(/{{compareUrlFormat}}/g, compareUrlFormat)
-  writerOpts.commitPartial = commit
-    .replace(/{{commitUrlFormat}}/g, commitUrlFormat)
-    .replace(/{{issueUrlFormat}}/g, issueUrlFormat)
-  writerOpts.footerPartial = footer
-
-  return writerOpts
+function compareNotes(a, b) {
+  return (a.title || '').localeCompare(b.title || '')
+    || (a.text || '').localeCompare(b.text || '')
 }
 
-function getWriterOpts(config) {
-  const commitGroupOrder = config.types.flatMap(t => t.section).filter(t => t)
+export function createWriterOpts(config) {
+  const finalConfig = {
+    types: DEFAULT_COMMIT_TYPES,
+    issuePrefixes: ['#'],
+    ...format,
+    ...config
+  }
+  const commitGroupOrder = finalConfig.types.map(t => t.section).filter(Boolean)
+  const formatReferences = createReferencesFormatter(finalConfig)
 
   return {
+    ...createLegacyWriterGuard('conventional-changelog-anansi'),
+    template: template.bind(finalConfig),
+    headerPartial: headerPartial.bind(finalConfig),
+    preamblePartial: preamblePartial.bind(finalConfig),
+    commitPartial: commitPartial.bind(finalConfig),
+    footerPartial: footerPartial.bind(finalConfig),
     transform: (commit, context) => {
       let discard = true
       const issues = []
-      const entry = findTypeEntry(config.types, commit)
+      const entry = findTypeEntry(finalConfig.types, commit)
 
       // Add an entry in the CHANGELOG if special Release-As footer
       // is used:
       if ((commit.footer && releaseAsRegex.test(commit.footer))
-          || (commit.body && releaseAsRegex.test(commit.body))) {
+        || (commit.body && releaseAsRegex.test(commit.body))) {
         discard = false
       }
 
-      const notes = commit.notes.map((note) => {
+      const notes = getNotes(commit).map((note) => {
         discard = false
 
         return {
           ...note,
-          title: '💥 BREAKING CHANGES'
+          title: finalConfig.formatNoteTitle(context, note.title),
+          text: formatReferences(note.text, context)
         }
       })
 
       if (
-        // breaking changes attached to any type are still displayed.
-        discard && (entry === undefined || entry.hidden)
-        || !matchScope(config, commit)
+        // notes attached to any type are still displayed.
+        discard && (entry === undefined || isTypeEffect(entry, 'hidden'))
+        || !matchScope(finalConfig, commit)
       ) {
         return undefined
       }
@@ -102,7 +76,7 @@ function getWriterOpts(config) {
       const type = entry
         ? entry.section
         : commit.type
-      const scope = commit.scope === '*' || config.scope
+      const scope = commit.scope === '*' || finalConfig.scope
         ? ''
         : commit.scope
       const shortHash = typeof commit.hash === 'string'
@@ -111,39 +85,8 @@ function getWriterOpts(config) {
       let { subject } = commit
 
       if (typeof subject === 'string') {
-        // Issue URLs.
-        const issueRegEx = `(${config.issuePrefixes.join('|')})([a-z0-9]+)`
-        const re = new RegExp(issueRegEx, 'g')
-
-        subject = subject.replace(re, (_, prefix, issue) => {
-          issues.push(prefix + issue)
-
-          const url = expandTemplate(config.issueUrlFormat, {
-            host: context.host,
-            owner: context.owner,
-            repository: context.repository,
-            id: issue,
-            prefix
-          })
-
-          return `[${prefix}${issue}](${url})`
-        })
-        // User URLs.
-        subject = subject.replace(/\B@([a-z0-9](?:-?[a-z0-9/]){0,38})/g, (_, user) => {
-          // TODO: investigate why this code exists.
-          if (user.includes('/')) {
-            return `@${user}`
-          }
-
-          const usernameUrl = expandTemplate(config.userUrlFormat, {
-            host: context.host,
-            owner: context.owner,
-            repository: context.repository,
-            user
-          })
-
-          return `[@${user}](${usernameUrl})`
-        })
+        // Issue and user URLs.
+        subject = formatReferences(subject, context, issues)
       }
 
       // remove references that already appear in the subject
@@ -169,33 +112,6 @@ function getWriterOpts(config) {
     },
     commitsSort: ['scope', 'subject'],
     noteGroupsSort: 'title',
-    notesSort: compareFunc
+    notesSort: compareNotes
   }
-}
-
-function findTypeEntry(types, commit) {
-  const typeKey = (commit.revert ? 'revert' : commit.type || '').toLowerCase()
-
-  return types.find((entry) => {
-    if (entry.type !== typeKey) {
-      return false
-    }
-
-    if (entry.scope && entry.scope !== commit.scope) {
-      return false
-    }
-
-    return true
-  })
-}
-
-// expand on the simple mustache-style templates supported in
-// configuration (we may eventually want to use handlebars for this).
-function expandTemplate(template, context) {
-  let expanded = template
-
-  Object.keys(context).forEach((key) => {
-    expanded = expanded.replace(new RegExp(`{{${key}}}`, 'g'), context[key])
-  })
-  return expanded
 }

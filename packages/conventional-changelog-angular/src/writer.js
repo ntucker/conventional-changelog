@@ -1,35 +1,48 @@
-import { readFile } from 'fs/promises'
-import { resolve } from 'path'
-import { fileURLToPath } from 'url'
-import compareFunc from 'compare-func'
+import {
+  createLegacyWriterGuard,
+  createReferencesFormatter,
+  noteTitle,
+  referenceRepositoryUrl,
+  url
+} from '@conventional-changelog/template'
+import {
+  template,
+  headerPartial,
+  preamblePartial,
+  commitPartial,
+  footerPartial
+} from './templates.js'
 
-const dirname = fileURLToPath(new URL('.', import.meta.url))
 const COMMIT_HASH_LENGTH = 7
+const formatReferences = createReferencesFormatter({
+  issuePrefixes: ['#'],
+  issuePattern: /[0-9]+/,
+  formatIssueUrl: (context, reference) => {
+    const repositoryUrl = referenceRepositoryUrl(context, reference)
 
-export async function createWriterOpts() {
-  const [
-    template,
-    header,
-    commit,
-    footer
-  ] = await Promise.all([
-    readFile(resolve(dirname, './templates/template.hbs'), 'utf-8'),
-    readFile(resolve(dirname, './templates/header.hbs'), 'utf-8'),
-    readFile(resolve(dirname, './templates/commit.hbs'), 'utf-8'),
-    readFile(resolve(dirname, './templates/footer.hbs'), 'utf-8')
-  ])
-  const writerOpts = getWriterOpts()
+    // without a repository url there is nothing to link to
+    return repositoryUrl
+      ? url(repositoryUrl, context.issue || 'issues', reference.issue)
+      : ''
+  },
+  formatUserUrl: (context, user) => (context.host
+    ? url(context.host, user)
+    : '')
+})
 
-  writerOpts.mainTemplate = template
-  writerOpts.headerPartial = header
-  writerOpts.commitPartial = commit
-  writerOpts.footerPartial = footer
-
-  return writerOpts
+function compareNotes(a, b) {
+  return (a.title || '').localeCompare(b.title || '')
+    || (a.text || '').localeCompare(b.text || '')
 }
 
-function getWriterOpts() {
+export function createWriterOpts() {
   return {
+    ...createLegacyWriterGuard('conventional-changelog-angular'),
+    template,
+    headerPartial,
+    preamblePartial,
+    commitPartial,
+    footerPartial,
     transform: (commit, context) => {
       let discard = true
       const notes = commit.notes.map((note) => {
@@ -37,7 +50,8 @@ function getWriterOpts() {
 
         return {
           ...note,
-          title: 'BREAKING CHANGES'
+          title: noteTitle(note.title),
+          text: formatReferences(note.text, context)
         }
       })
       let { type } = commit
@@ -74,33 +88,12 @@ function getWriterOpts() {
       let { subject } = commit
 
       if (typeof subject === 'string') {
-        let url = context.repository
-          ? `${context.host}/${context.owner}/${context.repository}`
-          : context.repoUrl
-
-        if (url) {
-          url = `${url}/issues/`
-          // Issue URLs.
-          subject = subject.replace(/#([0-9]+)/g, (_, issue) => {
-            issues.push(issue)
-            return `[#${issue}](${url}${issue})`
-          })
-        }
-
-        if (context.host) {
-          // User URLs.
-          subject = subject.replace(/\B@([a-z0-9](?:-?[a-z0-9/]){0,38})/g, (_, username) => {
-            if (username.includes('/')) {
-              return `@${username}`
-            }
-
-            return `[@${username}](${context.host}/${username})`
-          })
-        }
+        // Issue and user URLs.
+        subject = formatReferences(subject, context, issues)
       }
 
       // remove references that already appear in the subject
-      const references = commit.references.filter(reference => !issues.includes(reference.issue))
+      const references = commit.references.filter(reference => !issues.includes(reference.prefix + reference.issue))
 
       return {
         notes,
@@ -115,6 +108,6 @@ function getWriterOpts() {
     commitGroupsSort: 'title',
     commitsSort: ['scope', 'subject'],
     noteGroupsSort: 'title',
-    notesSort: compareFunc
+    notesSort: compareNotes
   }
 }

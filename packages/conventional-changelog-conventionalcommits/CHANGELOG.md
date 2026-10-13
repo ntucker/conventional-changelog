@@ -3,6 +3,93 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [10.4.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v10.4.0...conventional-changelog-conventionalcommits-v10.4.1) (2026-10-05)
+
+### Bug Fixes
+
+* declare DEFAULT_COMMIT_TYPES and format function exports ([#1552](https://github.com/conventional-changelog/conventional-changelog/issues/1552)) ([4ba1e91](https://github.com/conventional-changelog/conventional-changelog/commit/4ba1e91708fbbf6150d6bd8874ea3d08954fb0c9))
+
+## [10.4.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v10.3.0...conventional-changelog-conventionalcommits-v10.4.0) (2026-08-18)
+
+### Features
+
+* fail loudly when a preset is rendered by an old writer ([#1539](https://github.com/conventional-changelog/conventional-changelog/issues/1539)) ([341e3f0](https://github.com/conventional-changelog/conventional-changelog/commit/341e3f026b51c6913e5b217d6b9e1bffbddaac2f)), closes [#1495](https://github.com/conventional-changelog/conventional-changelog/issues/1495)
+
+## [10.3.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v10.2.1...conventional-changelog-conventionalcommits-v10.3.0) (2026-08-10)
+
+### Features
+
+* format references in breaking change notes ([#1529](https://github.com/conventional-changelog/conventional-changelog/issues/1529)) ([a8ef1ed](https://github.com/conventional-changelog/conventional-changelog/commit/a8ef1eda4526785460daa1f85a415eee326f291c)), closes [#631](https://github.com/conventional-changelog/conventional-changelog/issues/631)
+* group notes by their keyword ([#1533](https://github.com/conventional-changelog/conventional-changelog/issues/1533)) ([7be33d4](https://github.com/conventional-changelog/conventional-changelog/commit/7be33d4bac4917340063e2186477f3a121541734)), closes [#815](https://github.com/conventional-changelog/conventional-changelog/issues/815)
+
+### Bug Fixes
+
+* use current host url paths ([#1534](https://github.com/conventional-changelog/conventional-changelog/issues/1534)) ([612d368](https://github.com/conventional-changelog/conventional-changelog/commit/612d36822d3f0bf4c3041e85d19175faf55da7cf)), closes [#986](https://github.com/conventional-changelog/conventional-changelog/issues/986)
+
+## [10.2.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v10.2.0...conventional-changelog-conventionalcommits-v10.2.1) (2026-07-04)
+
+### Bug Fixes
+
+* point package homepages and docs to documentation website ([04796e2](https://github.com/conventional-changelog/conventional-changelog/commit/04796e22a649a14647feea99b445df2eb1c3acad))
+
+## [10.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v10.1.0...conventional-changelog-conventionalcommits-v10.2.0) (2026-06-27)
+
+### Features
+
+* support changelog preamble partial ([#1491](https://github.com/conventional-changelog/conventional-changelog/issues/1491)) ([e93dbe4](https://github.com/conventional-changelog/conventional-changelog/commit/e93dbe4a16bb621c6ae9d1082dcd09d34c6f8136))
+
+## [10.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v10.0.0...conventional-changelog-conventionalcommits-v10.1.0) (2026-06-27)
+
+### Features
+
+* support changelog preamble ([#1489](https://github.com/conventional-changelog/conventional-changelog/issues/1489)) ([7d9794f](https://github.com/conventional-changelog/conventional-changelog/commit/7d9794ff7c4ca5e9bd916c400b7fb1e426319379))
+
+## [10.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v9.3.1...conventional-changelog-conventionalcommits-v10.0.0) (2026-06-26)
+
+### ⚠ BREAKING CHANGES
+
+* the commit type `effect` property replaces the `hidden` commit type property and the `bumpStrict` preset option for controlling changelog visibility and version bumps.
+
+Fixes #1476.
+* Handlebars template strings and partial files were replaced with render functions.
+* packages now require Node.js 22 or newer.
+
+### Features
+
+* replace handlebars templates with render functions ([#1477](https://github.com/conventional-changelog/conventional-changelog/issues/1477)) ([55e6716](https://github.com/conventional-changelog/conventional-changelog/commit/55e6716e8f40c2a705bcb0cd343e1dcacd2f9459))
+* require node 22 ([de5e136](https://github.com/conventional-changelog/conventional-changelog/commit/de5e1368096ea0805e51e20df587ce528ca0575b))
+* support commit type effects ([#1484](https://github.com/conventional-changelog/conventional-changelog/issues/1484)) ([78761ae](https://github.com/conventional-changelog/conventional-changelog/commit/78761ae19b4711260d015f599316f2558804cbbc))
+
+### Bug Fixes
+
+* encode compare URL tags ([#1483](https://github.com/conventional-changelog/conventional-changelog/issues/1483)) ([96bf235](https://github.com/conventional-changelog/conventional-changelog/commit/96bf2355e9f4316eaf54823d7359a6b4bd42da4a))
+* render non-closing references separately ([#1482](https://github.com/conventional-changelog/conventional-changelog/issues/1482)) ([adb2c69](https://github.com/conventional-changelog/conventional-changelog/commit/adb2c697abe594d0b4cb6d858fcc3d2b46f21c30))
+* sort notes without compare-func ([#1487](https://github.com/conventional-changelog/conventional-changelog/issues/1487)) ([dc78285](https://github.com/conventional-changelog/conventional-changelog/commit/dc78285784fd119994c2438bd0f4cdbbb827565a))
+
+## [9.3.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v9.3.0...conventional-changelog-conventionalcommits-v9.3.1) (2026-03-29)
+
+### Bug Fixes
+
+* skip mention linkification inside inline code ([#1444](https://github.com/conventional-changelog/conventional-changelog/issues/1444)) ([c598bf1](https://github.com/conventional-changelog/conventional-changelog/commit/c598bf1dd8fe31fc3ce3ec561ac8b2b77cee3a02))
+
+## [9.3.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v9.2.0...conventional-changelog-conventionalcommits-v9.3.0) (2026-03-04)
+
+### Features
+
+* inline hbs templates in code as strings ([#1434](https://github.com/conventional-changelog/conventional-changelog/issues/1434)) ([0d5a4a6](https://github.com/conventional-changelog/conventional-changelog/commit/0d5a4a68b0ba79a3c97793395c6549af02272325))
+
+## [9.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v9.1.0...conventional-changelog-conventionalcommits-v9.2.0) (2026-03-01)
+
+### Features
+
+* align newline formatting across presets ([#1431](https://github.com/conventional-changelog/conventional-changelog/issues/1431)) ([b0721e1](https://github.com/conventional-changelog/conventional-changelog/commit/b0721e1d6c30b03e54d4fa5e271ecb67b5ae7ebe))
+
+## [9.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v9.0.0...conventional-changelog-conventionalcommits-v9.1.0) (2025-07-10)
+
+### Features
+
+* scope option can be an array of strings ([#1391](https://github.com/conventional-changelog/conventional-changelog/issues/1391)) ([81da809](https://github.com/conventional-changelog/conventional-changelog/commit/81da80996888efb0277f7c6f76f2dd39164d81bd))
+
 ## [9.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-conventionalcommits-v8.0.0...conventional-changelog-conventionalcommits-v9.0.0) (2025-05-19)
 
 ### ⚠ BREAKING CHANGES

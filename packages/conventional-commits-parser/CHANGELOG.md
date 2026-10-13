@@ -3,6 +3,75 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [7.1.3](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v7.1.2...conventional-commits-parser-v7.1.3) (2026-10-05)
+
+### Bug Fixes
+
+* match reference actions as whole words ([#1557](https://github.com/conventional-changelog/conventional-changelog/issues/1557)) ([657c5dd](https://github.com/conventional-changelog/conventional-changelog/commit/657c5dd697283c337c4657dd96c1eeec9e35002f))
+* parse reference actions of footers followed by a colon ([#1558](https://github.com/conventional-changelog/conventional-changelog/issues/1558)) ([a06cee8](https://github.com/conventional-changelog/conventional-changelog/commit/a06cee83ef8498f55c002b80d22d54ea0a24aeb1))
+
+## [7.1.2](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v7.1.1...conventional-commits-parser-v7.1.2) (2026-07-31)
+
+### Bug Fixes
+
+* require colon and line start for note keywords ([#1517](https://github.com/conventional-changelog/conventional-changelog/issues/1517)) ([92423a5](https://github.com/conventional-changelog/conventional-changelog/commit/92423a513920aff0b127b282af7cab7705ece374)), closes [#1515](https://github.com/conventional-changelog/conventional-changelog/issues/1515)
+
+## [7.1.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v7.1.0...conventional-commits-parser-v7.1.1) (2026-07-26)
+
+### Bug Fixes
+
+* do not treat indented lines as footers ([#1513](https://github.com/conventional-changelog/conventional-changelog/issues/1513)) ([c01c3c4](https://github.com/conventional-changelog/conventional-changelog/commit/c01c3c477ea350cabb43eae13dab965a0dc54b29)), closes [#1512](https://github.com/conventional-changelog/conventional-changelog/issues/1512)
+
+## [7.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v7.0.1...conventional-commits-parser-v7.1.0) (2026-07-09)
+
+### Features
+
+* replace `meow` with `argue-cli` ([#1505](https://github.com/conventional-changelog/conventional-changelog/issues/1505)) ([1ad6177](https://github.com/conventional-changelog/conventional-changelog/commit/1ad6177da0b9da2df4fffc41e0b6caf9b76bf200))
+
+## [7.0.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v7.0.0...conventional-commits-parser-v7.0.1) (2026-07-04)
+
+### Bug Fixes
+
+* point package homepages and docs to documentation website ([04796e2](https://github.com/conventional-changelog/conventional-changelog/commit/04796e22a649a14647feea99b445df2eb1c3acad))
+
+## [7.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v6.4.0...conventional-commits-parser-v7.0.0) (2026-06-26)
+
+### ⚠ BREAKING CHANGES
+
+* packages now require Node.js 22 or newer.
+
+### Features
+
+* require node 22 ([de5e136](https://github.com/conventional-changelog/conventional-changelog/commit/de5e1368096ea0805e51e20df587ce528ca0575b))
+
+### Bug Fixes
+
+* keep footers out of breaking notes ([#1485](https://github.com/conventional-changelog/conventional-changelog/issues/1485)) ([f9195d5](https://github.com/conventional-changelog/conventional-changelog/commit/f9195d5d27642599a7737d46f98fe5f8be57dc48))
+
+## [6.4.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v6.3.0...conventional-commits-parser-v6.4.0) (2026-03-29)
+
+### Features
+
+* support RegExp in noteKeywords, issuePrefixes, and referenceActions ([#1441](https://github.com/conventional-changelog/conventional-changelog/issues/1441)) ([f84bfc4](https://github.com/conventional-changelog/conventional-changelog/commit/f84bfc4cc8656d6c70d40ba3a4f35161ba9a2cf9)), closes [#1436](https://github.com/conventional-changelog/conventional-changelog/issues/1436)
+
+## [6.3.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v6.2.1...conventional-commits-parser-v6.3.0) (2026-03-01)
+
+### Features
+
+* use utils from simple-libs ([#1432](https://github.com/conventional-changelog/conventional-changelog/issues/1432)) ([7d27d06](https://github.com/conventional-changelog/conventional-changelog/commit/7d27d0673878b995e9c0c82641d9d70eb9561024))
+
+### Bug Fixes
+
+* deduplicate references when the same issue appears multiple times ([#1425](https://github.com/conventional-changelog/conventional-changelog/issues/1425)) ([836ac77](https://github.com/conventional-changelog/conventional-changelog/commit/836ac77b4164e4c3708e709aea44ef62556fab99))
+* default gitlab revert message does not use a final dot in commit message. ([#1422](https://github.com/conventional-changelog/conventional-changelog/issues/1422)) ([7391edf](https://github.com/conventional-changelog/conventional-changelog/commit/7391edf52cc1edf04f8946410ddb382c0e590aeb))
+* escape special chars in tokens ([#1418](https://github.com/conventional-changelog/conventional-changelog/issues/1418)) ([2536e21](https://github.com/conventional-changelog/conventional-changelog/commit/2536e2125c575548e8dde41d7b6ffaf4944dcb99))
+
+## [6.2.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v6.2.0...conventional-commits-parser-v6.2.1) (2025-10-20)
+
+### Bug Fixes
+
+* support ClickUp-style issue IDs ending with letters ([#1407](https://github.com/conventional-changelog/conventional-changelog/issues/1407)) ([557450b](https://github.com/conventional-changelog/conventional-changelog/commit/557450b85425f43cfc62176e85976eb98a752317))
+
 ## [6.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-commits-parser-v6.1.0...conventional-commits-parser-v6.2.0) (2025-06-09)
 
 ### Features

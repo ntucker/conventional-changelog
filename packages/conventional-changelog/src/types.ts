@@ -1,4 +1,4 @@
-import type { Package as NormalizedPackage } from 'normalize-package-data'
+import type { NormalizedPackageData } from '@simple-libs/normalize-package-data'
 import type {
   GetSemverTagsParams,
   GetCommitsParams
@@ -9,13 +9,21 @@ import type {
 } from 'conventional-commits-parser'
 import type {
   Options as WriterOptions,
-  Context,
-  FinalContext
+  TemplateContext,
+  FinalTemplateContext
 } from 'conventional-changelog-writer'
+import type {
+  HostType,
+  HostedGitInfo
+} from '@simple-libs/hosted-git-info'
 
-export type { Commit }
+export type {
+  Commit,
+  HostType,
+  HostedGitInfo
+}
 
-export type Package = Partial<NormalizedPackage>
+export type Package = NormalizedPackageData
 
 export type Logger = (source: string, messages: string | string[]) => void
 
@@ -23,24 +31,15 @@ export type PackageTransform = (pkg: Package) => Package
 
 export type CommitTransformFunction = (commit: Commit, params: Params) => Partial<Commit> | null | Promise<Partial<Commit> | null>
 
-export type HostType = 'github' | 'gitlab' | 'bitbucket' | 'sourcehut' | ''
-
-export interface HostedGitInfo {
-  url: string
-  type: HostType
-  host: string
-  owner?: string
-  project?: string
-}
-
 export interface HostOptions {
   issue: string
   commit: string
+  compare: string
   referenceActions: string[]
   issuePrefixes: string[]
 }
 
-export interface FinalizedContext extends FinalContext {
+export interface FinalizedContext extends FinalTemplateContext {
   currentTag?: string | null
   previousTag?: string | null
   linkCompare?: boolean
@@ -99,7 +98,7 @@ export interface Options {
 export interface Params extends Preset {
   commits: GetCommitsParams
   options: Options
-  context?: Context
+  context?: TemplateContext
   repository?: Partial<HostedGitInfo> | null
   package?: Package
 }
