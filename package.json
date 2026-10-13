@@ -22,42 +22,46 @@
     "generation"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
-    "clear": "pnpm -r --parallel --if-present clear && del ./coverage",
-    "build": "pnpm -r --parallel --if-present build",
-    "lint": "eslint '*.{js,cjs}' 'packages/conventional-changelog-conventionalcommits/*.{js,cjs,ts}'",
-    "format": "pnpm lint --fix",
-    "test:types": "pnpm -r --parallel --if-present test:types",
+    "clear": "pnpm -r --no-sort --if-present clear && del ./coverage",
+    "build": "pnpm -r --no-sort --if-present --filter './packages/*' build",
+    "lint": "oxlint",
+    "format": "oxlint --fix",
+    "test:types": "pnpm -r --no-sort --if-present test:types",
     "test:unit": "vitest run --coverage",
     "test:unit:watch": "vitest watch",
     "test": "run -p lint test:types test:unit",
+    "docs:dev": "pnpm --filter website dev",
+    "docs:build": "pnpm --filter website build",
     "commit": "cz",
-    "updateGitHooks": "simple-git-hooks",
-    "release": "lerna publish --conventional-commits --dist-tag=next"
+    "release": "pnpm --filter conventional-changelog-anansi publish --access public",
+    "updateGitHooks": "simple-git-hooks"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.2.2",
-    "@commitlint/config-conventional": "^19.2.2",
-    "@commitlint/config-pnpm-scopes": "^19.1.0",
-    "@commitlint/cz-commitlint": "^19.2.0",
-    "@trigen/eslint-config": "8.0.0-alpha.33",
-    "@trigen/scripts": "8.0.0-alpha.33",
-    "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^3.0.0",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
+    "@commitlint/config-pnpm-scopes": "^21.0.0",
+    "@commitlint/cz-commitlint": "^21.0.0",
+    "@trigen/oxlint": "^10.1.1",
+    "@trigen/oxlint-config": "^10.1.2",
+    "@trigen/scripts": "^10.1.1",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^5.0.0",
     "better-than-before": "^1.0.0",
     "clean-publish": "^5.0.0",
     "commitizen": "^4.3.0",
     "conventional-changelog": "workspace:^",
-    "del-cli": "^6.0.0",
-    "eslint": "^8.0.0",
+    "del-cli": "^7.0.0",
     "inquirer": "^12.0.0",
-    "nano-staged": "^0.8.0",
+    "nano-staged": "^1.0.0",
+    "oxlint": "^1.77.0",
+    "oxlint-tsgolint": "^7.0.2001",
     "simple-git-hooks": "^2.11.1",
     "tsm": "^2.3.0",
-    "typescript": "^5.2.2",
-    "vite": "^6.0.0",
-    "vitest": "^3.0.0"
+    "typescript": "^7.0.2",
+    "vite": "^8.0.0",
+    "vitest": "^5.0.0"
   }
 }

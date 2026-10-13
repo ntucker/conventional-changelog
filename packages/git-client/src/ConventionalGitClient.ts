@@ -4,12 +4,17 @@ import type {
   parseCommits
 } from 'conventional-commits-parser'
 import type { filterRevertedCommits } from 'conventional-commits-filter'
-import semver from 'semver'
+import {
+  clean as cleanVersion,
+  compareReversed,
+  isValid
+} from 'verkit'
 import { firstFromStream } from '@simple-libs/stream-utils'
 import type {
   GetCommitsParams,
   GetSemverTagsParams
 } from './types.js'
+import { isPrereleaseVersion } from './utils.js'
 import { GitClient } from './GitClient.js'
 
 /**
@@ -32,7 +37,6 @@ export class ConventionalGitClient extends GitClient {
   private deps: Promise<[typeof parseCommits, typeof filterRevertedCommits]> | null = null
 
   private loadDeps() {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (this.deps) {
       return this.deps
     }
@@ -81,27 +85,27 @@ export class ConventionalGitClient extends GitClient {
    * @param params.prefix - Get semver tags with specific prefix.
    * @param params.skipUnstable - Skip semver tags with unstable versions.
    * @param params.clean - Clean version from prefix and trash.
+   * @param params.path - Read tags from specific path.
+   * @param params.from - Start tags range.
+   * @param params.to - End tags range.
+   * @param params.since - Get tags since specific date.
    * @yields Semver tags.
    */
   async* getSemverTags(params: GetSemverTagsParams = {}) {
     const {
       prefix,
       skipUnstable,
-      clean
+      clean,
+      ...getTagsParams
     } = params
-    const tagsStream = this.getTags()
-    const unstableTagRegex = /\d+\.\d+\.\d+-.+/
+    const tagsStream = this.getTags(getTagsParams)
     const cleanTag = clean
-      ? (tag: string, unprefixed?: string) => semver.clean(unprefixed || tag)
+      ? (tag: string, unprefixed?: string) => cleanVersion(unprefixed || tag)
       : (tag: string) => tag
     let unprefixed: string
     let tag: string | null
 
     for await (tag of tagsStream) {
-      if (skipUnstable && unstableTagRegex.test(tag)) {
-        continue
-      }
-
       if (prefix) {
         const isPrefixed = typeof prefix === 'string'
           ? tag.startsWith(prefix)
@@ -110,7 +114,7 @@ export class ConventionalGitClient extends GitClient {
         if (isPrefixed) {
           unprefixed = tag.replace(prefix, '')
 
-          if (semver.valid(unprefixed)) {
+          if (isValid(unprefixed) && !(skipUnstable && isPrereleaseVersion(unprefixed))) {
             tag = cleanTag(tag, unprefixed)
 
             if (tag) {
@@ -118,7 +122,7 @@ export class ConventionalGitClient extends GitClient {
             }
           }
         }
-      } else if (semver.valid(tag)) {
+      } else if (isValid(tag) && !(skipUnstable && isPrereleaseVersion(tag))) {
         tag = cleanTag(tag)
 
         if (tag) {
@@ -157,6 +161,6 @@ export class ConventionalGitClient extends GitClient {
       return null
     }
 
-    return semverTags.sort(semver.rcompare)[0] || null
+    return semverTags.sort(compareReversed)[0] || null
   }
 }

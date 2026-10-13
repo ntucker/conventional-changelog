@@ -18,7 +18,7 @@
 [node-url]: https://nodejs.org
 
 [deps]: https://img.shields.io/librariesio/release/npm/conventional-changelog-conventionalcommits
-[deps-url]: https://libraries.io/npm/conventional-changelog-conventionalcommits/tree
+[deps-url]: https://libraries.io/npm/conventional-changelog-conventionalcommits
 
 [size]: https://packagephobia.com/badge?p=conventional-changelog-conventionalcommits
 [size-url]: https://packagephobia.com/result?p=conventional-changelog-conventionalcommits
@@ -34,57 +34,33 @@ A concrete implementation of the specification described at [conventionalcommits
 ## Install
 
 ```bash
-# yarn
-yarn add -D conventional-changelog-conventionalcommits
 # pnpm
 pnpm add -D conventional-changelog-conventionalcommits
+# yarn
+yarn add -D conventional-changelog-conventionalcommits
 # npm
 npm i -D conventional-changelog-conventionalcommits
 ```
 
-## Indirect Usage (as preset)
+## Usage
 
-Use the [Conventional Changelog CLI Usage](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog#usage) with the `-p conventionalcommits` option.
+Use with [conventional-changelog](https://conventional-changelog.js.org/conventional-changelog/) by passing the preset name with `-p`:
 
-## Direct Usage (as a base preset so you can customize it)
+```sh
+conventional-changelog -p conventionalcommits
+```
 
-If you want to use this package directly and pass options, you can use the [Conventional Changelog CLI Usage](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog#usage) and with the `--config` or `-n` parameter, pass a js config that looks like this:
+Or use it directly as a base preset to customize it:
 
 ```js
 import createPreset from 'conventional-changelog-conventionalcommits'
 
-createPreset({
-  issuePrefixes: ['TEST-'],
-  issueUrlFormat: 'https://myBugTracker.com/{{prefix}}{{id}}'
-}).then((config) => {
-  // do something with the config
+const config = createPreset({
+  issuePrefixes: ['TEST-']
 })
+// do something with the config
 ```
 
-or json config like that:
+## Documentation
 
-```json
-{
-  "options": {
-    "preset": {
-      "name": "conventionalcommits",
-      "issuePrefixes": ["TEST-"],
-      "issueUrlFormat": "https://myBugTracker.com/{{prefix}}{{id}}"
-    }
-  }
-}
-```
-
-This last json config way passes the `preset` object to the `conventional-changelog-preset-loader` package, that in turn, passes this same `preset` object as the config for the `conventional-changelog-conventionalcommits`.
-
-See [conventional-changelog-config-spec](https://github.com/conventional-changelog/conventional-changelog-config-spec) for available configuration options.
-
-## Specific Options
-
-| Option | Description |
-|--------|-------------|
-| ignoreCommits | Ignore commits that match the provided regex. |
-| types | An array of types to include in the changelog. Default value can be accessed from `DEFAULT_COMMIT_TYPES` export. |
-| bumpStrict | If set to `true`, the version will be bumped only if there are breaking changes or if the commit type is in the `types` array. Default value is `false`. |
-| scope | Scope name to filter commits. By default, commits without scope are included. |
-| scopeOnly | If set to `true`, only commits with the specified scope will be included. Default value is `false`. |
+For the commit convention details and preset options, visit the [documentation website](https://conventional-changelog.js.org/presets/conventional-commits/).

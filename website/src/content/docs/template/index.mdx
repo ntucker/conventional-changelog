@@ -1,0 +1,142 @@
+---
+title: Introduction
+description: Markdown helpers and default render functions for composing changelog templates.
+sidebar:
+  order: 1
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+`@conventional-changelog/template` provides the low-level building blocks for changelog output: small Markdown helpers like `heading` and `link`, repository URL helpers, and the default render functions the [writer](/changelog-writer/) uses. Presets and custom templates compose their `template` / `*Partial` functions from these.
+
+## Installation
+
+<Tabs syncKey="pkg">
+  <TabItem label="pnpm">
+    ```sh frame="none"
+    pnpm add @conventional-changelog/template
+    ```
+  </TabItem>
+  <TabItem label="npm">
+    ```sh frame="none"
+    npm i @conventional-changelog/template
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```sh frame="none"
+    yarn add @conventional-changelog/template
+    ```
+  </TabItem>
+</Tabs>
+
+## Markdown helpers
+
+Each helper returns a Markdown string; empty/falsy values are skipped so you can compose conditionally:
+
+```js
+import { heading, bold, link, list, url } from '@conventional-changelog/template'
+
+heading(2, 'Features')  // '## Features'
+bold('scope:')          // '**scope:**'
+
+link('0f7e2c1', url('https://github.com/acme/app', 'commit', '0f7e2c1'))
+// '[0f7e2c1](https://github.com/acme/app/commit/0f7e2c1)'
+
+list(['one', 'two'], item => item)
+// '* one\n* two'
+```
+
+| Helper | Renders |
+| --- | --- |
+| `heading(level, text)` | A Markdown heading (`## text`). |
+| `link(text, url)` | A Markdown link (`[text](url)`). |
+| `list(array, callback)` | A Markdown unordered list. |
+| `each(array, callback, separator?)` | The array's non-empty rendered items, joined. |
+| `bold(text)` · `italic(text)` · `small(text)` | `**text**` · `_text_` · `<small>text</small>`. |
+| `words(...values)` · `strings(...values)` · `segments(...values)` | Non-empty values joined by a space · nothing · a blank line. |
+| `newline(times?)` | Newline characters. |
+| `url(...parts)` | Path segments joined into a URL, trimming stray slashes. |
+
+## Repository and reference helpers
+
+These build links from a template context (`host`, `owner`, `repository`, `previousTag`, `currentTag`, …):
+
+```js
+import { repositoryUrl, compareUrl } from '@conventional-changelog/template'
+
+const context = {
+  host: 'https://github.com',
+  owner: 'acme',
+  repository: 'app',
+  previousTag: 'v1.0.0',
+  currentTag: 'v1.1.0'
+}
+
+repositoryUrl(context) // 'https://github.com/acme/app'
+compareUrl(context)    // 'https://github.com/acme/app/compare/v1.0.0...v1.1.0'
+```
+
+| Helper | Renders |
+| --- | --- |
+| `repositoryUrl(context)` | The repository's base URL. |
+| `compareUrl(context)` | The `previousTag...currentTag` comparison URL. |
+| `referenceRepositoryUrl(context, reference)` | The base URL for an issue reference (which may live in another repo). |
+| `reference(commitReference)` | The reference text, e.g. `#42`. |
+| `noteTitle(title)` | The note group title: breaking change keywords merged into `BREAKING CHANGES`, any other keyword uppercased. |
+
+## References formatter
+
+`createReferencesFormatter` builds a function which turns issue references and user mentions inside a free-form text — a commit subject or a breaking change note — into Markdown links. Already formatted Markdown is left untouched: inline and reference links, bare URLs, fenced code blocks and single-line code spans.
+
+```js
+import { createReferencesFormatter } from '@conventional-changelog/template'
+
+const formatReferences = createReferencesFormatter({
+  issuePrefixes: ['#'],
+  formatIssueUrl: (context, reference) => `https://tracker/${reference.prefix}${reference.issue}`,
+  formatUserUrl: (context, user) => `https://host/${user}`
+})
+
+formatReferences('see #1 by @dlmr', context)
+// 'see [#1](https://tracker/#1) by [@dlmr](https://host/dlmr)'
+
+formatReferences('`#1`', context)
+// '`#1`'
+```
+
+| Option | Description |
+| --- | --- |
+| `issuePrefixes` | Issue prefixes, strings or regexes. Strings are escaped. Prefixes are matched in the given order, so `['jira-', 'j']` — not the other way round. Without prefixes issue references are not formatted. |
+| `issuePattern` | Issue id pattern, `/[a-z0-9]+/` by default. |
+| `formatIssueUrl(context, reference)` | Issue URL. An empty result leaves the reference as is. |
+| `formatUserUrl(context, user)` | User URL. An empty result leaves the mention as is. |
+
+Regexes from the options are inlined into a single multiline regex, so their flags are ignored, `^` and `$` match line boundaries, and they should not contain capturing groups, backreferences or named groups.
+
+The formatter takes an optional third argument — an array to collect the formatted issue references into, which presets use to drop references already shown in the subject:
+
+```js
+const issues = []
+
+formatReferences('fix #1', context, issues)
+// issues: ['#1']
+```
+
+## Default template and partials
+
+`template`, `headerPartial`, `preamblePartial`, `commitPartial`, and `footerPartial` are the render functions the [writer](/changelog-writer/api/#options) uses by default. Import them to reuse or wrap, or compose your own partial from the helpers:
+
+```js
+import { words, bold, link, url } from '@conventional-changelog/template'
+
+// A commit line: "**scope:** subject ([hash](url))"
+function commitPartial(context, commit) {
+  return words(
+    commit.scope && bold(`${commit.scope}:`),
+    commit.subject,
+    commit.hash && `(${link(commit.hash, url(context.repoUrl, 'commit', commit.hash))})`
+  )
+}
+```
+
+Pass a partial like this as a [Changelog Writer option](/changelog-writer/api/#options), or through a preset's `writer` config.

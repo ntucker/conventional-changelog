@@ -1,7 +1,7 @@
 {
   "name": "conventional-recommended-bump",
   "type": "module",
-  "version": "11.2.0",
+  "version": "12.1.0",
   "description": "Get a recommended version bump based on conventional commits.",
   "author": {
     "name": "Steve Mao",
@@ -9,7 +9,7 @@
     "url": "https://github.com/stevemao"
   },
   "license": "MIT",
-  "homepage": "https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-recommended-bump#readme",
+  "homepage": "https://conventional-changelog.js.org/version-bump/",
   "repository": {
     "type": "git",
     "url": "https://github.com/conventional-changelog/conventional-changelog.git",
@@ -25,7 +25,7 @@
     "bump"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "exports": "./src/index.ts",
   "publishConfig": {
@@ -53,10 +53,10 @@
   },
   "dependencies": {
     "@conventional-changelog/git-client": "workspace:^",
+    "argue-cli": "catalog:",
     "conventional-changelog-preset-loader": "workspace:^",
     "conventional-commits-filter": "workspace:^",
-    "conventional-commits-parser": "workspace:^",
-    "meow": "^13.0.0"
+    "conventional-commits-parser": "workspace:^"
   },
   "devDependencies": {
     "conventional-changelog-anansi": "workspace:^"

@@ -1,4 +1,10 @@
-import { vi, afterAll, describe, it, expect } from 'vitest'
+import {
+  vi,
+  afterAll,
+  describe,
+  it,
+  expect
+} from 'vitest'
 import BetterThanBefore from 'better-than-before'
 import path from 'path'
 import {
@@ -136,6 +142,28 @@ setups([
     testTools.exec('git add --all && git commit -m"5.0.0"')
     testTools.exec('git tag v5.0.0')
     testTools.exec('git merge feature2 -m"Merge branch \'feature2\'"')
+  },
+  () => { // 20
+    testTools.exec('git checkout -b feature3')
+    testTools.writeFileSync('./package.json', '{"version": "6.0.0"}')
+    testTools.exec('git add --all && git commit -m"feat: sixth commit"')
+    testTools.exec('git tag v6.0.0')
+    testTools.writeFileSync('./package.json', '{"version": "7.0.0"}')
+    testTools.exec('git add --all && git commit -m"feat: seventh commit"')
+    testTools.exec('git tag v7.0.0')
+    testTools.exec('git checkout master')
+    testTools.exec('git merge feature3 -m"Merge branch \'feature3\'"')
+  },
+  () => { // 21
+    testTools.gitCommit('feat: prerelease commit')
+    testTools.exec('git tag v8.0.0-rc.1')
+    testTools.gitCommit('feat: stable release commit')
+    testTools.exec('git tag v8.0.0')
+  },
+  () => { // 22
+    testTools.gitCommit('feat: promoted to stable commit')
+    testTools.exec('git tag v9.0.0-rc.1')
+    testTools.exec('git tag v9.0.0')
   }
 ])
 
@@ -221,9 +249,7 @@ describe('conventional-changelog', () => {
         testTools.rmSync('.git/refs/HEAD', {
           recursive: true
         })
-      } catch (err) {
-      // ignore
-      }
+      } catch {}
 
       const log = new ConventionalChangelog(testTools.cwd)
         .options({
@@ -260,6 +286,72 @@ describe('conventional-changelog', () => {
       expect(chunks[0]).toContain('Second commit')
       expect(chunks[0]).toContain('Third commit')
       expect(chunks[0]).toMatch(/Third commit closes #1[\w\W]*?\* Second commit/)
+      expect(chunks[0]).not.toContain('First commit')
+    })
+
+    it('should keep release windows when `gitRawCommitsOpts.from` is a semver tag', async () => {
+      preparing(7)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .context({
+          version: '3.0.0'
+        })
+        .commits({
+          from: 'v0.1.0'
+        })
+        .writer({
+          template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
+        })
+        .readPackage()
+        .write()
+      const chunks = await toArray(log)
+
+      expect(chunks).toEqual([
+        'v2.0.0...v3.0.0\n',
+        '\nv0.1.0...v2.0.0\n'
+      ])
+    })
+
+    it('should keep release windows when `gitRawCommitsOpts.to` is HEAD', async () => {
+      preparing(7)
+
+      const render = (commits = {}) => toArray(
+        new ConventionalChangelog(testTools.cwd)
+          .options({
+            releaseCount: 100
+          })
+          .context({
+            version: '3.0.0'
+          })
+          .commits(commits)
+          .writer({
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
+          })
+          .readPackage()
+          .write()
+      )
+
+      expect(await render({
+        to: 'HEAD'
+      })).toEqual(await render())
+    })
+
+    it('should honour manual commit range', async () => {
+      preparing(2)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .commits({
+          from: 'v0.1.0',
+          to: 'HEAD~1'
+        })
+        .readPackage()
+        .write()
+      const chunks = await toArray(log)
+
+      expect(chunks.length).toBe(1)
+
+      expect(chunks[0]).toContain('Second commit')
+      expect(chunks[0]).not.toContain('Third commit')
       expect(chunks[0]).not.toContain('First commit')
     })
 
@@ -473,8 +565,8 @@ describe('conventional-changelog', () => {
       expect(chunks.length).toBe(1)
 
       expect(chunks[0]).toContain('](github/b/a/commit/')
-      expect(chunks[0]).toContain('closes [#42](github/b/a/issues/42)')
-      expect(chunks[0]).not.toContain('closes [#71](github/b/a/issues/71)')
+      expect(chunks[0]).toContain('closes [@42](github/b/a/issues/42)')
+      expect(chunks[0]).not.toContain('closes [@71](github/b/a/issues/71)')
     })
 
     it('should read host configs if only `parserOpts.referenceActions` is missing', async () => {
@@ -533,7 +625,7 @@ describe('conventional-changelog', () => {
       expect(chunks.length).toBe(1)
 
       expect(chunks[0]).toContain('](bitbucket/b/a/commits/')
-      expect(chunks[0]).toContain('closes [#1](bitbucket/b/a/issue/1)')
+      expect(chunks[0]).toContain('closes [#1](bitbucket/b/a/issues/1)')
     })
 
     it('should read gitlab\'s host configs', async () => {
@@ -551,8 +643,29 @@ describe('conventional-changelog', () => {
 
       expect(chunks.length).toBe(1)
 
-      expect(chunks[0]).toContain('](gitlab/b/a/commit/')
-      expect(chunks[0]).toContain('closes [#1](gitlab/b/a/issues/1)')
+      expect(chunks[0]).toContain('](gitlab/b/a/-/commit/')
+      expect(chunks[0]).toContain('closes [#1](gitlab/b/a/-/issues/1)')
+    })
+
+    it('should use gitlab\'s comparison url', async () => {
+      preparing(5)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .loadPreset('angular')
+        .context({
+          host: 'gitlab',
+          owner: 'b',
+          repository: 'a',
+          version: '2.0.0',
+          linkCompare: true,
+          previousTag: 'v1.0.0',
+          currentTag: 'v2.0.0'
+        })
+        .write()
+      const chunks = await toArray(log)
+
+      expect(chunks[0]).toContain('(gitlab/b/a/-/compare/v1.0.0...v2.0.0)')
     })
 
     it('should transform the commit', async () => {
@@ -622,7 +735,7 @@ describe('conventional-changelog', () => {
           releaseCount: 0
         })
         .writer({
-          mainTemplate: '{{gitSemverTags}} or {{gitSemverTags.[0]}}'
+          template: (context: any) => `${context.gitSemverTags} or ${context.gitSemverTags[0]}`
         })
         .write()
       const chunks = await toArray(log)
@@ -630,9 +743,9 @@ describe('conventional-changelog', () => {
       expect(chunks.length).toBe(3)
 
       expect(chunks).toEqual([
-        'v2.0.0,v0.1.0 or v2.0.0',
-        'v2.0.0,v0.1.0 or v2.0.0',
-        'v2.0.0,v0.1.0 or v2.0.0'
+        'v2.0.0,v0.1.0 or v2.0.0\n',
+        '\nv2.0.0,v0.1.0 or v2.0.0\n',
+        '\nv2.0.0,v0.1.0 or v2.0.0\n'
       ])
     })
 
@@ -650,7 +763,9 @@ describe('conventional-changelog', () => {
           linkCompare: false
         })
         .writer({
-          mainTemplate: '{{#if linkCompare}}{{previousTag}}...{{currentTag}}{{else}}Not linked{{/if}}',
+          template: context => (context.linkCompare
+            ? `${context.previousTag}...${context.currentTag}`
+            : 'Not linked'),
           transform: () => null
         })
         .write()
@@ -659,9 +774,9 @@ describe('conventional-changelog', () => {
       expect(chunks.length).toBe(3)
 
       expect(chunks).toEqual([
-        'Not linked',
-        'Not linked',
-        'Not linked'
+        'Not linked\n',
+        '\nNot linked\n',
+        '\nNot linked\n'
       ])
     })
 
@@ -680,7 +795,7 @@ describe('conventional-changelog', () => {
 
       await toArray(log)
 
-      expect(warn).toBeCalledWith('core', 'Host is not supported: no')
+      expect(warn).toHaveBeenCalledWith('core', 'Host is not supported: no')
     })
 
     it('should error if package.json is not found', async () => {
@@ -799,15 +914,15 @@ describe('conventional-changelog', () => {
       const log = new ConventionalChangelog(testTools.cwd)
         .readPackage()
         .writer({
-          headerPartial: '',
-          commitPartial: '* {{header}}\n'
+          headerPartial: () => '',
+          commitPartial: (_context, commit) => commit.header || ''
         })
         .write()
       const chunks = await toArray(log)
 
       expect(chunks.length).toBe(1)
 
-      expect(chunks[0]).toBe('\n* test8\n* test8\n* test9\n\n\n\n')
+      expect(chunks[0]).toBe('* test8\n* test8\n* test9\n')
     })
 
     it('should recreate the changelog from scratch', async () => {
@@ -903,6 +1018,74 @@ describe('conventional-changelog', () => {
       expect(chunks[0]).toMatch(/\/commit\/\w{40}\)\)/)
     })
 
+    it('should generate changelog when HEAD is at latest tag', async () => {
+      preparing(20)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .loadPreset('angular')
+        .tags({
+          prefix: undefined
+        })
+        .options({
+          releaseCount: 0
+        })
+        .commits({
+          path: '.'
+        })
+        .write()
+      const chunks = await toArray(log)
+
+      expect(chunks[0]).toContain('# [7.0.0]')
+      expect(chunks[0]).toContain('seventh commit')
+      expect(chunks[1]).toContain('# [6.0.0]')
+      expect(chunks[1]).toContain('sixth commit')
+    })
+
+    it('should not generate separate sections for unstable tags if `skipUnstable` is set', async () => {
+      preparing(21)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .loadPreset('angular')
+        .tags({
+          skipUnstable: true
+        })
+        .options({
+          releaseCount: 2
+        })
+        .write()
+      const chunks = await toArray(log)
+      const changelog = chunks.join('')
+
+      expect(changelog).not.toContain('8.0.0-rc.1')
+      expect(changelog).toContain('# [8.0.0]')
+      expect(changelog).toContain('prerelease commit')
+      expect(changelog).toContain('stable release commit')
+    })
+
+    it('should use stable tag for section if commit also has an unstable tag and `skipUnstable` is set', async () => {
+      preparing(22)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .loadPreset('angular')
+        .tags({
+          skipUnstable: true
+        })
+        .options({
+          releaseCount: 2
+        })
+        .write()
+      const chunks = await toArray(log)
+      const changelog = chunks.join('')
+
+      expect(changelog).not.toContain('9.0.0-rc.1')
+      expect(changelog).toContain('# [9.0.0]')
+      expect(changelog).toContain('compare/v8.0.0...v9.0.0')
+      expect(changelog).toContain('promoted to stable commit')
+    })
+
     describe('finalizeContext', () => {
       it('should make `context.previousTag` default to a previous semver version of generated log (prepend)', async () => {
         const { tail } = preparing(11)
@@ -915,16 +1098,16 @@ describe('conventional-changelog', () => {
             version: '3.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}'
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
           })
           .write()
         const chunks = await toArray(log)
 
         expect(chunks.length).toBe(2)
 
-        expect(chunks[0]).toBe('v2.0.0...v3.0.0')
+        expect(chunks[0]).toBe('v2.0.0...v3.0.0\n')
 
-        expect(chunks[1]).toBe(`${tail}...v2.0.0`)
+        expect(chunks[1]).toBe(`\n${tail}...v2.0.0\n`)
       })
 
       it('should make `context.previousTag` default to a previous semver version of generated log (append)', async () => {
@@ -939,16 +1122,16 @@ describe('conventional-changelog', () => {
             version: '3.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}'
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
           })
           .write()
         const chunks = await toArray(log)
 
         expect(chunks.length).toBe(2)
 
-        expect(chunks[0]).toBe(`${tail}...v2.0.0`)
+        expect(chunks[0]).toBe(`${tail}...v2.0.0\n`)
 
-        expect(chunks[1]).toBe('v2.0.0...v3.0.0')
+        expect(chunks[1]).toBe('\nv2.0.0...v3.0.0\n')
       })
 
       it('`context.previousTag` and `context.currentTag` should be `null` if `keyCommit.gitTags` is not a semver', async () => {
@@ -963,7 +1146,7 @@ describe('conventional-changelog', () => {
             version: '3.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}',
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`,
             generateOn: 'version'
           })
           .write()
@@ -971,11 +1154,11 @@ describe('conventional-changelog', () => {
 
         expect(chunks.length).toBe(3)
 
-        expect(chunks[0]).toBe(`${tail}...v2.0.0`)
+        expect(chunks[0]).toBe(`${tail}...v2.0.0\n`)
 
-        expect(chunks[1]).toBe('...')
+        expect(chunks[1]).toBe('\n...\n')
 
-        expect(chunks[2]).toBe('v2.0.0...v3.0.0')
+        expect(chunks[2]).toBe('\nv2.0.0...v3.0.0\n')
       })
 
       it('should still work if first release has no commits (prepend)', async () => {
@@ -990,7 +1173,7 @@ describe('conventional-changelog', () => {
             version: '3.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}',
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`,
             transform: () => null
           })
           .write()
@@ -998,11 +1181,11 @@ describe('conventional-changelog', () => {
 
         expect(chunks.length).toBe(3)
 
-        expect(chunks[0]).toBe('v2.0.0...v3.0.0')
+        expect(chunks[0]).toBe('v2.0.0...v3.0.0\n')
 
-        expect(chunks[1]).toBe('v0.0.1...v2.0.0')
+        expect(chunks[1]).toBe('\nv0.0.1...v2.0.0\n')
 
-        expect(chunks[2]).toBe('...v0.0.1')
+        expect(chunks[2]).toBe('\n...v0.0.1\n')
       })
 
       it('should still work if first release has no commits (append)', async () => {
@@ -1018,7 +1201,7 @@ describe('conventional-changelog', () => {
             version: '3.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}',
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`,
             transform: () => null
           })
           .write()
@@ -1026,11 +1209,11 @@ describe('conventional-changelog', () => {
 
         expect(chunks.length).toBe(3)
 
-        expect(chunks[0]).toBe('...v0.0.1')
+        expect(chunks[0]).toBe('...v0.0.1\n')
 
-        expect(chunks[1]).toBe('v0.0.1...v2.0.0')
+        expect(chunks[1]).toBe('\nv0.0.1...v2.0.0\n')
 
-        expect(chunks[2]).toBe('v2.0.0...v3.0.0')
+        expect(chunks[2]).toBe('\nv2.0.0...v3.0.0\n')
       })
 
       it('should change `context.currentTag` to last commit hash if it is unreleased', async () => {
@@ -1044,14 +1227,14 @@ describe('conventional-changelog', () => {
             version: '2.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}'
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
           })
           .write()
         const chunks = await toArray(log)
 
         expect(chunks.length).toBe(1)
 
-        expect(chunks[0]).toBe(`v2.0.0...${head}`)
+        expect(chunks[0]).toBe(`v2.0.0...${head}\n`)
       })
 
       it('should not prefix with a "v"', async () => {
@@ -1066,14 +1249,14 @@ describe('conventional-changelog', () => {
             version: '4.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}'
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
           })
           .write()
         const chunks = await toArray(log)
 
         expect(chunks.length).toBe(5)
 
-        expect(chunks[0]).toBe('3.0.0...4.0.0')
+        expect(chunks[0]).toBe('3.0.0...4.0.0\n')
       })
 
       it('should remove the first "v"', async () => {
@@ -1088,14 +1271,14 @@ describe('conventional-changelog', () => {
             version: 'v4.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}'
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
           })
           .write()
         const chunks = await toArray(log)
 
         expect(chunks.length).toBe(5)
 
-        expect(chunks[0]).toBe('3.0.0...4.0.0')
+        expect(chunks[0]).toBe('3.0.0...4.0.0\n')
       })
 
       it('should prefix a leading v to version if no previous tags found', async () => {
@@ -1107,14 +1290,14 @@ describe('conventional-changelog', () => {
             version: '1.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}'
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
           })
           .write()
         const chunks = await toArray(log)
 
         expect(chunks.length).toBe(1)
 
-        expect(chunks[0]).toBe('...v1.0.0')
+        expect(chunks[0]).toBe('...v1.0.0\n')
       })
 
       it('should not prefix a leading v to version if there is already a leading v', async () => {
@@ -1126,14 +1309,14 @@ describe('conventional-changelog', () => {
             version: 'v1.0.0'
           })
           .writer({
-            mainTemplate: '{{previousTag}}...{{currentTag}}'
+            template: context => `${context.previousTag || ''}...${context.currentTag || ''}`
           })
           .write()
         const chunks = await toArray(log)
 
         expect(chunks.length).toBe(1)
 
-        expect(chunks[0]).toBe('...v1.0.0')
+        expect(chunks[0]).toBe('...v1.0.0\n')
       })
 
       it('should not link compare if previousTag is not truthy', async () => {
@@ -1149,7 +1332,9 @@ describe('conventional-changelog', () => {
             version: '3.0.0'
           })
           .writer({
-            mainTemplate: '{{#if linkCompare}}{{previousTag}}...{{currentTag}}{{else}}Not linked{{/if}}',
+            template: context => (context.linkCompare
+              ? `${context.previousTag || ''}...${context.currentTag || ''}`
+              : 'Not linked'),
             transform: () => null
           })
           .write()
@@ -1157,11 +1342,11 @@ describe('conventional-changelog', () => {
 
         expect(chunks.length).toBe(3)
 
-        expect(chunks[0]).toBe('Not linked')
+        expect(chunks[0]).toBe('Not linked\n')
 
-        expect(chunks[1]).toBe('v0.0.1...v2.0.0')
+        expect(chunks[1]).toBe('\nv0.0.1...v2.0.0\n')
 
-        expect(chunks[2]).toBe('v2.0.0...v3.0.0')
+        expect(chunks[2]).toBe('\nv2.0.0...v3.0.0\n')
       })
 
       it('takes into account tagPrefix option', async () => {
@@ -1181,7 +1366,7 @@ describe('conventional-changelog', () => {
 
         expect(chunks.length).toBe(1)
 
-        expect(chunks[0]).toContain('foo@1.0.0...foo@2.0.0')
+        expect(chunks[0]).toContain('foo%401.0.0...foo%402.0.0')
       })
     })
 
@@ -1261,7 +1446,7 @@ describe('conventional-changelog', () => {
 
         expect(chunks.length).toBe(1)
 
-        expect(chunks[0]).toContain('foo@1.0.0...foo@2.0.0')
+        expect(chunks[0]).toContain('foo%401.0.0...foo%402.0.0')
       })
 
       it('should generate the changelog of the last two releases', async () => {

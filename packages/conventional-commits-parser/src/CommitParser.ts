@@ -110,11 +110,15 @@ export class CommitParser {
   }
 
   private parseReferences(
-    input: string
+    input: string,
+    isFooterToken = false
   ) {
     const { regexes } = this
-    const regex = input.match(regexes.references)
-      ? regexes.references
+    const referencesRegex = isFooterToken
+      ? regexes.footerReferences
+      : regexes.references
+    const regex = input.match(referencesRegex)
+      ? referencesRegex
       : /()(.+)/gi
     const references: CommitReference[] = []
     let matches: RegExpExecArray | null
@@ -251,7 +255,7 @@ export class CommitParser {
     }
 
     const matches = this.currentLine().match(regexes.notes)
-    let references: CommitReference[] = []
+    let isFooterToken: boolean
 
     if (matches) {
       const note: CommitNote = {
@@ -272,18 +276,20 @@ export class CommitParser {
           return true
         }
 
-        references = this.parseReferences(this.currentLine())
+        isFooterToken = regexes.footerToken.test(this.currentLine())
 
-        if (references.length) {
-          commit.references.push(...references)
-        } else {
+        commit.references.push(
+          ...this.parseReferences(this.currentLine(), isFooterToken)
+        )
+
+        if (!isFooterToken) {
           note.text = appendLine(note.text, this.currentLine())
         }
 
         commit.footer = appendLine(commit.footer, this.currentLine())
         this.nextLine()
 
-        if (references.length) {
+        if (isFooterToken) {
           break
         }
       }
@@ -295,19 +301,25 @@ export class CommitParser {
   }
 
   private parseBodyAndFooter(isBody: boolean) {
-    const { commit } = this
+    const {
+      commit,
+      regexes
+    } = this
 
     if (!this.isLineAvailable()) {
       return isBody
     }
 
-    const references = this.parseReferences(this.currentLine())
-    const isStillBody = !references.length && isBody
+    const isFooterToken = regexes.footerToken.test(this.currentLine())
+    const isStillBody = !isFooterToken && isBody
+
+    commit.references.push(
+      ...this.parseReferences(this.currentLine(), isFooterToken)
+    )
 
     if (isStillBody) {
       commit.body = appendLine(commit.body, this.currentLine())
     } else {
-      commit.references.push(...references)
       commit.footer = appendLine(commit.footer, this.currentLine())
     }
 
@@ -372,16 +384,24 @@ export class CommitParser {
   private cleanupCommit() {
     const { commit } = this
 
-    if (commit.body) {
-      commit.body = trimNewLines(commit.body)
-    }
-
-    if (commit.footer) {
-      commit.footer = trimNewLines(commit.footer)
-    }
+    commit.body &&= trimNewLines(commit.body)
+    commit.footer &&= trimNewLines(commit.footer)
 
     commit.notes.forEach((note) => {
       note.text = trimNewLines(note.text)
+    })
+
+    const referencesSet = new Set<string>()
+
+    commit.references = commit.references.filter((reference) => {
+      const uid = `${reference.action} ${reference.raw}`.toLocaleLowerCase()
+      const ok = !referencesSet.has(uid)
+
+      if (ok) {
+        referencesSet.add(uid)
+      }
+
+      return ok
     })
   }
 

@@ -1,4 +1,10 @@
-import { describe, beforeAll, afterAll, it, expect } from 'vitest'
+import {
+  describe,
+  beforeAll,
+  afterAll,
+  it,
+  expect
+} from 'vitest'
 import path from 'path'
 import { TestTools } from '../../../../tools/index.js'
 
@@ -273,7 +279,7 @@ describe('conventional-changelog', () => {
         ]
       )
 
-      expect(stdout).toBe('unicorn template')
+      expect(stdout).toBe('unicorn template\n')
     })
 
     it('--context should work with absolute path', async () => {
@@ -288,7 +294,7 @@ describe('conventional-changelog', () => {
         ]
       )
 
-      expect(stdout).toBe('unicorn template')
+      expect(stdout).toBe('unicorn template\n')
     })
 
     it('--config should work with a return promise', async () => {
@@ -298,7 +304,7 @@ describe('conventional-changelog', () => {
         '--stdout'
       ])
 
-      expect(stdout).toBe('template')
+      expect(stdout).toBe('template\n')
     })
 
     it('--config should work with relative path', async () => {
@@ -309,7 +315,7 @@ describe('conventional-changelog', () => {
         '--stdout'
       ])
 
-      expect(stdout).toBe('template')
+      expect(stdout).toBe('template\n')
     })
 
     it('--config should work with absolute path', async () => {
@@ -319,7 +325,7 @@ describe('conventional-changelog', () => {
         '--stdout'
       ])
 
-      expect(stdout).toBe('template')
+      expect(stdout).toBe('template\n')
     })
 
     it('--preset should work', async () => {
@@ -360,7 +366,7 @@ describe('conventional-changelog', () => {
         ]
       )
 
-      expect(stdout).toBe('Bug Fixestemplate')
+      expect(stdout).toBe('Bug Fixestemplate\n')
     })
 
     it('should be verbose', async () => {
@@ -369,5 +375,5 @@ describe('conventional-changelog', () => {
       expect(stdout).toContain('[git-client]: [')
       expect(exitCode).toBe(0)
     })
-  })
+  }, 15_000)
 })

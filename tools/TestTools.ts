@@ -1,4 +1,7 @@
-import { execSync, spawn } from 'child_process'
+import {
+  execSync,
+  spawn
+} from 'child_process'
 import { pathToFileURL } from 'url'
 import path from 'path'
 import fs from 'fs'
@@ -39,9 +42,7 @@ export class TestTools {
       if (!otherDirs.length) {
         fs.rmdirSync(tmpDir)
       }
-    } catch (err) {
-      // ignore
-    }
+    } catch {}
   }
 
   mkdirSync(dir: string, options?: Parameters<typeof fs.mkdirSync>[1]) {
@@ -68,16 +69,28 @@ export class TestTools {
     })
   }
 
-  fork(script: string, args: string[] = [], options: Parameters<typeof spawn>[2] = {}) {
-    return new Promise<{stdout: string, stderr: string, exitCode: number | null}>((resolve, reject) => {
+  fork(script: string, args: string[] = [], options: Parameters<typeof spawn>[2] & { stdinFile?: string } = {}) {
+    const {
+      stdinFile,
+      ...spawnOptions
+    } = options
+
+    return new Promise<{
+      stdout: string
+      stderr: string
+      exitCode: number | null
+    }>((resolve, reject) => {
+      // A plain descriptor, closed as soon as the child has its own copy:
+      // Node.js 26 throws on a FileHandle that is left to the garbage collector
+      const stdin = stdinFile ? fs.openSync(stdinFile, 'r') : null
       const finalOptions = {
         cwd: this.cwd,
         stdio: [
-          null,
+          stdin,
           null,
           null
         ],
-        ...options
+        ...spawnOptions
       }
       const nodeArgs = [
         '--no-warnings',
@@ -89,6 +102,11 @@ export class TestTools {
         script,
         ...args
       ], finalOptions)
+
+      if (stdin !== null) {
+        fs.closeSync(stdin)
+      }
+
       let stdout = ''
       let stderr = ''
       let exitCode = null

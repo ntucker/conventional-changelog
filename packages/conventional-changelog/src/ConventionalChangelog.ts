@@ -12,8 +12,8 @@ import {
 } from '@conventional-changelog/git-client'
 import {
   type Options as WriterOptions,
-  type Context,
   type Details,
+  type TemplateContext,
   transformCommit,
   formatDate,
   writeChangelog
@@ -25,11 +25,13 @@ import {
   createPresetLoader,
   loadPreset as defaultLoadPreset
 } from 'conventional-changelog-preset-loader'
-import normalizePackageData from 'normalize-package-data'
+import { normalizePackageData } from '@simple-libs/normalize-package-data'
 import { findPackage } from 'fd-package-json'
-import { parseHostedGitUrl } from './hostedGitInfo.js'
+import {
+  type HostedGitInfo,
+  parseHostedGitUrl
+} from '@simple-libs/hosted-git-info'
 import type {
-  HostedGitInfo,
   HostOptions,
   Package,
   PackageTransform,
@@ -43,6 +45,7 @@ import {
   guessNextTag,
   isUnreleasedVersion,
   versionTagRegex,
+  matchSemverTag,
   defaultCommitTransform,
   bindLogNamespace
 } from './utils.js'
@@ -124,15 +127,16 @@ export class ConventionalChangelog {
     }
 
     if (repository) {
-      finalContext.repoUrl = finalContext.repoUrl || repository.url
-      finalContext.host = finalContext.host || repository.host
-      finalContext.owner = finalContext.owner || repository.owner
-      finalContext.repository = finalContext.repository || repository.project
+      finalContext.repoUrl ||= repository.url
+      finalContext.host ||= repository.host
+      finalContext.owner ||= repository.owner
+      finalContext.repository ||= repository.project
     }
 
     if (hostOptions) {
-      finalContext.issue = finalContext.issue || hostOptions.issue
-      finalContext.commit = finalContext.commit || hostOptions.commit
+      finalContext.issue ||= hostOptions.issue
+      finalContext.commit ||= hostOptions.commit
+      finalContext.compare ||= hostOptions.compare
     }
 
     if (isUnreleasedVersion(semverTags, finalContext.version) && options.outputUnreleased) {
@@ -171,10 +175,10 @@ export class ConventionalChangelog {
         const lastCommitHash = lastCommit ? lastCommit.hash : null
 
         if ((!context.currentTag || !context.previousTag) && keyCommit) {
-          const matches = keyCommit.gitTags?.match(versionTagRegex)
           const { currentTag } = context
 
-          context.currentTag = currentTag || matches?.[1] // currentTag || matches ? matches[1] : null
+          context.currentTag = currentTag
+            || matchSemverTag(keyCommit.gitTags, versionTagRegex, tag => semverTags.includes(tag))
 
           const index = context.currentTag
             ? semverTags.indexOf(context.currentTag)
@@ -190,20 +194,20 @@ export class ConventionalChangelog {
 
             if (!previousTag) {
               if (options.append) {
-                context.previousTag = context.previousTag || firstCommitHash
+                context.previousTag ||= firstCommitHash
               } else {
-                context.previousTag = context.previousTag || lastCommitHash
+                context.previousTag ||= lastCommitHash
               }
             }
           }
         } else {
-          context.previousTag = context.previousTag || semverTags[0]
+          context.previousTag ||= semverTags[0]
 
           if (context.version === 'Unreleased') {
             if (options.append) {
-              context.currentTag = context.currentTag || lastCommitHash
+              context.currentTag ||= lastCommitHash
             } else {
-              context.currentTag = context.currentTag || firstCommitHash
+              context.currentTag ||= firstCommitHash
             }
           } else if (!context.currentTag) {
             if (tags?.prefix) {
@@ -258,8 +262,9 @@ export class ConventionalChangelog {
       reset,
       releaseCount
     } = options
+    const isManualRange = Boolean(commits.to && (commits.from || commits.to !== 'HEAD'))
     const params = {
-      from: reset
+      from: reset || isManualRange
         ? undefined
         : releaseCount
           ? semverTags[releaseCount - 1]
@@ -288,6 +293,11 @@ export class ConventionalChangelog {
 
     try {
       await gitClient.verify('HEAD')
+
+      if (isManualRange) {
+        yield* gitClient.getCommits(params, parserParams)
+        return
+      }
 
       let reverseTags = semverTags.slice().reverse()
 
@@ -320,7 +330,7 @@ export class ConventionalChangelog {
       for (const stream of streams) {
         yield* stream
       }
-    } catch (err) {
+    } catch {
       yield* gitClient.getCommits(params, parserParams)
     }
   }
@@ -349,7 +359,7 @@ export class ConventionalChangelog {
       pkg = (await findPackage(gitClient.cwd) || {}) as Package
     }
 
-    normalizePackageData(pkg)
+    pkg = normalizePackageData(pkg)
 
     if (!pkg.repository?.url) {
       try {
@@ -361,9 +371,7 @@ export class ConventionalChangelog {
             url: repoUrl
           }
         }
-      } catch (err) {
-        // Do nothing
-      }
+      } catch {}
     }
 
     if (transform) {
@@ -507,7 +515,7 @@ export class ConventionalChangelog {
    * @param context - Writer context data
    * @returns this
    */
-  context(context: Context) {
+  context(context: TemplateContext) {
     this.composeParams({
       context
     })

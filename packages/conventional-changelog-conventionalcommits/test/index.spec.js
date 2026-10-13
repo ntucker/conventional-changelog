@@ -1,13 +1,23 @@
 import path from 'path'
-import { afterAll, describe, it, expect } from 'vitest'
+import {
+  afterAll,
+  describe,
+  it,
+  expect
+} from 'vitest'
 import BetterThanBefore from 'better-than-before'
 import { ConventionalChangelog } from 'conventional-changelog'
 import {
   TestTools,
   toArray
 } from '../../../tools/index.ts'
-import preset, { DEFAULT_COMMIT_TYPES } from '../src/index.js'
+import createPreset from '../src/index.js'
+import { CONVENTIONALCOMMITS_TYPES as DEFAULT_COMMIT_TYPES } from './conventionalcommitsTypes.js'
 
+const preset = config => createPreset({
+  types: DEFAULT_COMMIT_TYPES,
+  ...config
+})
 const { setups, preparing, tearsWithJoy } = BetterThanBefore()
 let testTools
 
@@ -23,13 +33,13 @@ setups([
         url: 'https://github.com/conventional-changelog/conventional-changelog.git'
       }
     }))
-    testTools.gitCommit(['internal!: first build setup', 'BREAKING CHANGE: New build system.'])
-    testTools.gitCommit(['internal(travis): add TravisCI pipeline', 'BREAKING CHANGE: Continuously integrated.'])
-    testTools.gitCommit(['feat: amazing new module', 'BREAKING CHANGE: Not backward compatible.'])
-    testTools.gitCommit(['fix(compile): avoid a bug', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['enhance(ngOptions): make it faster', ' closes #1, #2'])
+    testTools.gitCommit(['build!: first build setup', 'BREAKING CHANGE: New build system.'])
+    testTools.gitCommit(['ci(travis): add TravisCI pipeline', 'BREAKING CHANGE: Continuously integrated.'])
+    testTools.gitCommit(['Feat: amazing new module', 'BREAKING CHANGE: Not backward compatible.'])
+    testTools.gitCommit(['Fix(compile): avoid a bug', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['perf(ngOptions): make it faster', ' closes #1, #2'])
     testTools.gitCommit(['fix(changelog): proper issue links', ' see #1, conventional-changelog/standard-version#358'])
-    testTools.gitCommit('internal(ngOptions): bad commit')
+    testTools.gitCommit('revert(ngOptions): bad commit')
     testTools.gitCommit('fix(*): oops')
     testTools.gitCommit(['fix(changelog): proper issue links', ' see GH-1'])
     testTools.gitCommit(['feat(awesome): adress EXAMPLE-1'])
@@ -47,12 +57,12 @@ setups([
     testTools.gitCommit(['feat(awesome): issue brought up by @bcoe! on Friday'])
   },
   () => {
-    testTools.gitCommit(['internal(npm): edit build script', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['internal(travis): setup travis', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['build(npm): edit build script', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['ci(travis): setup travis', 'BREAKING CHANGE: The Change is huge.'])
     testTools.gitCommit(['docs(readme): make it clear', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['internal(whitespace): make it easier to read', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['internal(code): change a lot of code', 'BREAKING CHANGE: The Change is huge.'])
-    testTools.gitCommit(['internal(*)!: more tests', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['style(whitespace): make it easier to read', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['refactor(code): change a lot of code', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['test(*)!: more tests', 'BREAKING CHANGE: The Change is huge.'])
   },
   () => {
     testTools.exec('git tag v0.1.0')
@@ -67,7 +77,7 @@ setups([
   },
   () => {
     testTools.gitCommit(['fix: use npm@5 (@username)'])
-    testTools.gitCommit(['internal(deps): bump @dummy/package from 7.1.2 to 8.0.0', 'BREAKING CHANGE: The Change is huge.'])
+    testTools.gitCommit(['build(deps): bump @dummy/package from 7.1.2 to 8.0.0', 'BREAKING CHANGE: The Change is huge.'])
     testTools.gitCommit([
       'feat: complex new feature',
       'this is a complex new feature with many reviewers',
@@ -84,6 +94,35 @@ setups([
   },
   () => {
     testTools.gitCommit(['chore: release at different version', 'Release-As: v3.0.2'])
+  },
+  () => {
+    testTools.gitCommit(['fix: replace `@nano_kit/router` with `@nano_kit/router2`'])
+  },
+  () => {
+    testTools.gitCommit([
+      'feat!: support commit type effects',
+      'BREAKING CHANGE: effect replaces hidden.',
+      'Fixes #1476.'
+    ])
+  },
+  () => {
+    testTools.gitCommit([
+      'feat(api): drop legacy endpoints',
+      'BREAKING CHANGE: EXAMPLE-100 describes the migration, ask @dlmr for details.',
+      'Already formatted: [EXAMPLE-101](https://tracker.example/EXAMPLE-101).',
+      'Plain url: https://tracker.example/EXAMPLE-102.',
+      'Code span: `EXAMPLE-103`.',
+      'Code block:',
+      '```js',
+      'migrate(\'EXAMPLE-104\')',
+      '```'
+    ])
+    testTools.gitCommit(['feat(api): keep `EXAMPLE-200` as is'])
+  },
+  () => {
+    testTools.gitCommit(['fix(api): patch a hole', 'SECURITY: fixed an XSS in the renderer'])
+    testTools.gitCommit(['fix(api): patch another hole', 'Security: fixed a prototype pollution'])
+    testTools.gitCommit(['feat(api)!: remove the legacy client', 'SECURITY: dropped the vulnerable dependency'])
   }
 ])
 
@@ -96,6 +135,31 @@ afterAll(() => {
 })
 
 describe('conventional-changelog-conventionalcommits', () => {
+  it('should render preamble after release header', async () => {
+    preparing(1)
+
+    const preamble = 'Compatibility notes before the grouped changes.'
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .context({
+        version: '1.0.0',
+        date: '2024-01-02',
+        preamble
+      })
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+    const preambleIndex = chunks[0].indexOf(preamble)
+    const breakingChangesIndex = chunks[0].indexOf('BREAKING CHANGES')
+
+    expect(chunks[0]).toContain([
+      '## 1.0.0 (2024-01-02)',
+      '',
+      preamble
+    ].join('\n'))
+    expect(breakingChangesIndex).toBeGreaterThan(preambleIndex)
+  })
+
   it('should work if there is no semver tag', async () => {
     preparing(1)
 
@@ -135,9 +199,9 @@ describe('conventional-changelog-conventionalcommits', () => {
     // CHANGELOG should group sections in order of importance:
     expect(
       chunks[0].indexOf('BREAKING CHANGE') < chunks[0].indexOf('Features')
-        && chunks[0].indexOf('Features') < chunks[0].indexOf('Bug Fixes')
-        && chunks[0].indexOf('Bug Fixes') < chunks[0].indexOf('Performance Improvements')
-        && chunks[0].indexOf('Performance Improvements') < chunks[0].indexOf('Reverts')
+      && chunks[0].indexOf('Features') < chunks[0].indexOf('Bug Fixes')
+      && chunks[0].indexOf('Bug Fixes') < chunks[0].indexOf('Performance Improvements')
+      && chunks[0].indexOf('Performance Improvements') < chunks[0].indexOf('Reverts')
     ).toBe(true)
   })
 
@@ -208,7 +272,7 @@ describe('conventional-changelog-conventionalcommits', () => {
           commitType.type === 'chore'
             ? {
               ...commitType,
-              hidden: false
+              effect: 'changelog'
             }
             : commitType
         ))
@@ -236,14 +300,28 @@ describe('conventional-changelog-conventionalcommits', () => {
     expect(chunks[0]).toContain('[conventional-changelog/standard-version#358](https://github.com/conventional-changelog/standard-version/issues/358)')
   })
 
-  it('should properly format external repository issues given an `issueUrlFormat`', async () => {
+  it('should render only closing action references under closes', async () => {
+    preparing(1)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain(', closes [#1](https://github.com/conventional-changelog/conventional-changelog/issues/1) [#2](https://github.com/conventional-changelog/conventional-changelog/issues/2)')
+    expect(chunks[0]).toContain(', references [#1](https://github.com/conventional-changelog/conventional-changelog/issues/1) [conventional-changelog/standard-version#358](https://github.com/conventional-changelog/standard-version/issues/358)')
+    expect(chunks[0]).not.toContain(', closes [#1](https://github.com/conventional-changelog/conventional-changelog/issues/1) [conventional-changelog/standard-version#358]')
+  })
+
+  it('should properly format external repository issues given a `formatIssueUrl`', async () => {
     preparing(1)
 
     const log = new ConventionalChangelog(testTools.cwd)
       .readPackage()
       .config(preset({
         issuePrefixes: ['#', 'GH-'],
-        issueUrlFormat: 'issues://{{repository}}/issues/{{id}}'
+        formatIssueUrl: (context, reference) => `issues://${reference.repository || context.repository}/issues/${reference.issue}`
       }))
       .write()
     const chunks = await toArray(log)
@@ -253,19 +331,131 @@ describe('conventional-changelog-conventionalcommits', () => {
     expect(chunks[0]).toContain('[GH-1](issues://conventional-changelog/issues/1)')
   })
 
-  it('should properly format issues in external issue tracker given an `issueUrlFormat` with `prefix`', async () => {
+  it('should properly format issues in external issue tracker given a `formatIssueUrl` with `prefix`', async () => {
     preparing(1)
 
     const log = new ConventionalChangelog(testTools.cwd)
       .readPackage()
       .config(preset({
-        issueUrlFormat: 'https://example.com/browse/{{prefix}}{{id}}',
+        formatIssueUrl: (_context, reference) => `https://example.com/browse/${reference.prefix}${reference.issue}`,
         issuePrefixes: ['EXAMPLE-']
       }))
       .write()
     const chunks = await toArray(log)
 
     expect(chunks[0]).toContain('[EXAMPLE-1](https://example.com/browse/EXAMPLE-1)')
+  })
+
+  it('should format references in breaking change notes', async () => {
+    preparing(14)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset({
+        formatIssueUrl: (_context, reference) => `https://example.com/browse/${reference.prefix}${reference.issue}`,
+        issuePrefixes: ['EXAMPLE-']
+      }))
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('[EXAMPLE-100](https://example.com/browse/EXAMPLE-100) describes the migration')
+    expect(chunks[0]).toContain('ask [@dlmr](https://github.com/dlmr) for details.')
+  })
+
+  it('should keep already formatted references in breaking change notes as is', async () => {
+    preparing(14)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset({
+        formatIssueUrl: (_context, reference) => `https://example.com/browse/${reference.prefix}${reference.issue}`,
+        issuePrefixes: ['EXAMPLE-']
+      }))
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('Already formatted: [EXAMPLE-101](https://tracker.example/EXAMPLE-101).')
+    expect(chunks[0]).toContain('Plain url: https://tracker.example/EXAMPLE-102.')
+    expect(chunks[0]).toContain('Code span: `EXAMPLE-103`.')
+    expect(chunks[0]).toContain('migrate(\'EXAMPLE-104\')')
+    expect(chunks[0]).not.toContain('https://example.com/browse/EXAMPLE-101')
+    expect(chunks[0]).not.toContain('https://example.com/browse/EXAMPLE-102')
+    expect(chunks[0]).not.toContain('https://example.com/browse/EXAMPLE-103')
+    expect(chunks[0]).not.toContain('https://example.com/browse/EXAMPLE-104')
+  })
+
+  it('should keep references inside code spans in subject as is', async () => {
+    preparing(14)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset({
+        formatIssueUrl: (_context, reference) => `https://example.com/browse/${reference.prefix}${reference.issue}`,
+        issuePrefixes: ['EXAMPLE-']
+      }))
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('keep `EXAMPLE-200` as is')
+    expect(chunks[0]).not.toContain('https://example.com/browse/EXAMPLE-200')
+  })
+
+  it('should group notes by their keyword', async () => {
+    preparing(15)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .commits({}, {
+        noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE', 'SECURITY']
+      })
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('### SECURITY')
+    expect(chunks[0]).toContain('### ⚠ 💥 BREAKING CHANGES')
+    // both `SECURITY` and `Security` keywords are grouped together
+    expect(chunks[0]).toContain('**api:** fixed an XSS in the renderer')
+    expect(chunks[0]).toContain('**api:** fixed a prototype pollution')
+    expect(chunks[0]).not.toContain('### Security')
+  })
+
+  it('should keep the breaking change declared by `!` next to notes of other keywords', async () => {
+    preparing(15)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .commits({}, {
+        noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE', 'SECURITY']
+      })
+      .write()
+    const chunks = await toArray(log)
+
+    // the breaking change is a note of its own, without a commit link
+    expect(chunks[0]).toMatch(/\* \*\*api:\*\* remove the legacy client\r?\n/)
+    expect(chunks[0]).toContain('**api:** dropped the vulnerable dependency')
+  })
+
+  it('should support custom note titles and icons', async () => {
+    preparing(15)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset({
+        formatNoteTitle: (_context, title) => (title.toUpperCase() === 'SECURITY'
+          ? 'Security fixes'
+          : 'BREAKING CHANGES'),
+        formatNoteIcon: (_context, title) => (title === 'Security fixes' ? '🔒' : '⚠')
+      }))
+      .commits({}, {
+        noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE', 'SECURITY']
+      })
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('### 🔒 Security fixes')
+    expect(chunks[0]).toContain('### ⚠ BREAKING CHANGES')
   })
 
   it('should replace #[a-z0-9]+ with issue URL by default', async () => {
@@ -294,13 +484,13 @@ describe('conventional-changelog-conventionalcommits', () => {
     expect(chunks[0]).not.toContain('closes [#88](https://github.com/conventional-changelog/conventional-changelog/issues/88)')
   })
 
-  it('should replace @user with configured userUrlFormat', async () => {
+  it('should replace @user with configured formatUserUrl', async () => {
     preparing(4)
 
     const log = new ConventionalChangelog(testTools.cwd)
       .readPackage()
       .config(preset({
-        userUrlFormat: 'https://foo/{{user}}'
+        formatUserUrl: (_context, user) => `https://foo/${user}`
       }))
       .write()
     const chunks = await toArray(log)
@@ -380,8 +570,8 @@ describe('conventional-changelog-conventionalcommits', () => {
     const log = new ConventionalChangelog(testTools.cwd)
       .readPackage(path.join(__dirname, 'fixtures/_unknown-host.json'))
       .config(preset({
-        commitUrlFormat: 'http://unknown/commit/{{hash}}',
-        compareUrlFormat: 'http://unknown/compare/{{previousTag}}...{{currentTag}}'
+        formatCommitUrl: (_context, commit) => `http://unknown/commit/${commit.hash}`,
+        formatCompareUrl: context => `http://unknown/compare/${context.previousTag}...${context.currentTag}`
       }))
       .write()
     const chunks = await toArray(log)
@@ -466,7 +656,8 @@ describe('conventional-changelog-conventionalcommits', () => {
     const chunks = await toArray(log)
 
     expect(chunks[0]).toContain('closes [#99]')
-    expect(chunks[0]).toContain('[#100]')
+    expect(chunks[0]).toContain('references [#100]')
+    expect(chunks[0]).not.toContain('references [#99]')
     expect(chunks[0]).toContain('this completely changes the API')
   })
 
@@ -491,7 +682,7 @@ describe('conventional-changelog-conventionalcommits', () => {
       .write()
     const chunks = await toArray(log)
 
-    expect(chunks[0]).toMatch(/incredible new flag FIXES: #33\r?\n/)
+    expect(chunks[0]).toMatch(/incredible new flag FIXES: \[#33]\(https:\/\/github\.com\/conventional-changelog\/conventional-changelog\/issues\/33\)\r?\n/)
   })
 
   it('parses both default (Revert "<subject>") and custom (revert: <subject>) revert commits', async () => {
@@ -517,5 +708,256 @@ describe('conventional-changelog-conventionalcommits', () => {
     const chunks = await toArray(log)
 
     expect(chunks[0]).toMatch(/release at different version/)
+  })
+
+  it('should not replace @mention inside backtick-wrapped code', async () => {
+    preparing(12)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('`@nano_kit/router`')
+    expect(chunks[0]).not.toContain('[@nano')
+  })
+
+  it('should not include closing references in breaking change notes', async () => {
+    preparing(13)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('effect replaces hidden.')
+    expect(chunks[0]).toContain(', closes [#1476](https://github.com/conventional-changelog/conventional-changelog/issues/1476)')
+    expect(chunks[0]).not.toContain('Fixes #1476')
+  })
+
+  describe('whatBump', () => {
+    it('should bump major version for breaking change notes', () => {
+      const { whatBump } = preset()
+      const result = whatBump([
+        {
+          type: 'fix',
+          notes: [{
+            title: 'BREAKING CHANGE',
+            text: 'the config format has changed'
+          }]
+        }
+      ])
+
+      expect(result.level).toBe(0)
+      expect(result.reason).toBe('There is 1 BREAKING CHANGE and 0 features')
+    })
+
+    it('should not bump major version for other note keywords', () => {
+      const { whatBump } = preset()
+      const result = whatBump([
+        {
+          type: 'fix',
+          notes: [{
+            title: 'SECURITY',
+            text: 'fixed an XSS in the renderer'
+          }]
+        },
+        {
+          type: 'feat',
+          notes: [{
+            title: 'Security',
+            text: 'fixed a prototype pollution'
+          }]
+        }
+      ])
+
+      expect(result.level).toBe(1)
+      expect(result.reason).toBe('There are 0 BREAKING CHANGES and 1 features')
+    })
+
+    it('should bump major version for `!` next to notes of other keywords', () => {
+      const { whatBump } = preset()
+      const result = whatBump([
+        {
+          type: 'feat',
+          header: 'feat(api)!: remove the legacy client',
+          subject: 'remove the legacy client',
+          notes: [{
+            title: 'SECURITY',
+            text: 'dropped the vulnerable dependency'
+          }]
+        }
+      ])
+
+      expect(result.level).toBe(0)
+      expect(result.reason).toBe('There is 1 BREAKING CHANGE and 0 features')
+    })
+  })
+
+  describe('type effects', () => {
+    it('should not bump version when only changelog or hidden types are present', () => {
+      const config = preset({
+        types: [
+          {
+            type: 'feat',
+            section: 'Features',
+            effect: 'bump'
+          },
+          {
+            type: 'fix',
+            section: 'Bug Fixes',
+            effect: 'bump'
+          },
+          {
+            type: 'chore',
+            section: 'Chores',
+            effect: 'changelog'
+          },
+          {
+            type: 'docs',
+            section: 'Documentation',
+            effect: 'hidden'
+          }
+        ]
+      })
+      const whatBump = config.whatBump
+      const commits = [
+        {
+          type: 'chore',
+          scope: 'deps',
+          notes: []
+        },
+        {
+          type: 'chore',
+          scope: 'release',
+          notes: []
+        },
+        {
+          type: 'docs',
+          scope: 'readme',
+          notes: []
+        }
+      ]
+      const result = whatBump(commits)
+
+      expect(result).toBe(null)
+    })
+
+    it('should bump version when bump effect types are present', () => {
+      const config = preset({
+        types: [
+          {
+            type: 'feat',
+            section: 'Features',
+            effect: 'bump'
+          },
+          {
+            type: 'fix',
+            section: 'Bug Fixes',
+            effect: 'bump'
+          },
+          {
+            type: 'chore',
+            section: 'Chores',
+            effect: 'changelog'
+          }
+        ]
+      })
+      const whatBump = config.whatBump
+      const commits = [
+        {
+          type: 'fix',
+          scope: 'core',
+          notes: []
+        },
+        {
+          type: 'chore',
+          scope: 'deps',
+          notes: []
+        }
+      ]
+      const result = whatBump(commits)
+
+      expect(result).not.toBe(null)
+      expect(result.level).toBe(2)
+    })
+  })
+
+  describe('scope and scopeOnly parameters', () => {
+    it('should filter changelog generation by scope (includes commits without scope)', async () => {
+      preparing(1)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .config(preset({
+          scope: 'compile'
+        }))
+        .write()
+      const changelog = (await toArray(log)).join('')
+
+      expect(changelog).toContain('avoid a bug')
+      expect(changelog).not.toContain('add TravisCI pipeline')
+      expect(changelog).toContain('amazing new module')
+      expect(changelog).toContain('first build setup')
+    })
+
+    it('should filter changelog generation by scopeOnly (excludes commits without scope)', async () => {
+      preparing(1)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .config(preset({
+          scope: 'compile',
+          scopeOnly: true
+        }))
+        .write()
+      const changelog = (await toArray(log)).join('')
+
+      expect(changelog).toContain('avoid a bug')
+      expect(changelog).not.toContain('add TravisCI pipeline')
+      expect(changelog).not.toContain('amazing new module')
+      expect(changelog).not.toContain('first build setup')
+    })
+
+    it('should filter changelog generation by scope array (includes commits without scope)', async () => {
+      preparing(1)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .config(preset({
+          scope: ['compile', 'travis']
+        }))
+        .write()
+      const changelog = (await toArray(log)).join('')
+
+      expect(changelog).toContain('avoid a bug')
+      expect(changelog).toContain('add TravisCI pipeline')
+      expect(changelog).toContain('amazing new module')
+      expect(changelog).toContain('first build setup')
+      expect(changelog).not.toContain('make it faster')
+      expect(changelog).not.toContain('upgrade example from 1 to 2')
+    })
+
+    it('should filter changelog generation by scope array with scopeOnly (excludes commits without scope)', async () => {
+      preparing(1)
+
+      const log = new ConventionalChangelog(testTools.cwd)
+        .readPackage()
+        .config(preset({
+          scope: ['compile', 'travis'],
+          scopeOnly: true
+        }))
+        .write()
+      const changelog = (await toArray(log)).join('')
+
+      expect(changelog).toContain('avoid a bug')
+      expect(changelog).toContain('add TravisCI pipeline')
+      expect(changelog).not.toContain('amazing new module')
+      expect(changelog).not.toContain('first build setup')
+      expect(changelog).not.toContain('make it faster')
+      expect(changelog).not.toContain('upgrade example from 1 to 2')
+    })
   })
 })

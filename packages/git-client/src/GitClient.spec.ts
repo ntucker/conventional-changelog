@@ -1,5 +1,15 @@
-import { describe, beforeAll, afterAll, it, expect } from 'vitest'
-import { TestTools, toArray, delay } from '../../../tools/index.js'
+import {
+  describe,
+  beforeAll,
+  afterAll,
+  it,
+  expect
+} from 'vitest'
+import {
+  TestTools,
+  toArray,
+  delay
+} from '../../../tools/index.js'
 import { GitClient } from './GitClient.js'
 
 describe('git-client', () => {
@@ -98,6 +108,35 @@ describe('git-client', () => {
         ))
       })
 
+      it('should honour `options.firstParent`', async () => {
+        // Create a side branch with a commit, then merge it in
+        testTools.exec('git checkout -b side-branch')
+        testTools.writeFileSync('side-file', '')
+        testTools.exec('git add --all && git commit -m"feat: side branch commit"')
+        testTools.exec('git checkout master')
+        testTools.exec('git merge side-branch --no-ff -m"Merge branch side-branch"')
+
+        const allCommits = await toArray(client.getRawCommits({
+          from: 'HEAD~2'
+        }))
+        const firstParentCommits = await toArray(client.getRawCommits({
+          from: 'HEAD~2',
+          firstParent: true
+        }))
+
+        // Without firstParent, the side branch commit is included
+        expect(allCommits).toMatchObject(expect.arrayContaining(
+          [expect.stringContaining('side branch commit')]
+        ))
+        // With firstParent, only the merge commit is returned
+        expect(firstParentCommits).not.toMatchObject(expect.arrayContaining(
+          [expect.stringContaining('side branch commit')]
+        ))
+        expect(firstParentCommits).toMatchObject(expect.arrayContaining(
+          [expect.stringContaining('Merge branch side-branch')]
+        ))
+      })
+
       it('should pass raw args', async () => {
         await delay(1000)
 
@@ -122,6 +161,22 @@ describe('git-client', () => {
 
         expect(tags).toMatchObject(expect.arrayContaining([expect.stringMatching(/^v\d+\.\d+\.\d+$/)]))
       })
+
+      it('should honour `options.all`', async () => {
+        testTools.exec('git checkout -b all-tags-branch')
+        testTools.gitCommit('feat: commit for tag out of master history')
+        testTools.exec('git tag v19.0.0')
+        testTools.exec('git checkout master')
+        testTools.exec('git branch -D all-tags-branch')
+
+        const tags = await toArray(client.getTags())
+        const allTags = await toArray(client.getTags({
+          all: true
+        }))
+
+        expect(tags).not.toContain('v19.0.0')
+        expect(allTags).toContain('v19.0.0')
+      })
     })
 
     describe('getCurrentBranch', () => {
@@ -133,6 +188,42 @@ describe('git-client', () => {
     describe('getLastTag', () => {
       it('should get last tag', async () => {
         expect(await client.getLastTag()).toBe('v18.0.0')
+      })
+    })
+
+    describe('option-like arguments', () => {
+      const secretFile = 'secret.txt'
+      const secret = 'SUPER_SECRET_VALUE'
+      const pathspecFromFile = `--pathspec-from-file=${secretFile}`
+
+      beforeAll(() => {
+        testTools.writeFileSync(secretFile, secret)
+      })
+
+      it('should not let `checkout` read a file', async () => {
+        await expect(client.checkout(pathspecFromFile)).rejects.toThrow(
+          expect.objectContaining({
+            message: expect.not.stringContaining(secret)
+          })
+        )
+      })
+
+      it('should not let commits range become an option', async () => {
+        const commitsStream = client.getRawCommits({
+          from: '--max-count=1',
+          to: ''
+        })
+
+        await expect(toArray(commitsStream)).rejects.toThrow()
+      })
+
+      it('should not let tags range become an option', async () => {
+        const tagsStream = client.getTags({
+          from: '--max-count=1',
+          to: ''
+        })
+
+        await expect(toArray(tagsStream)).rejects.toThrow()
       })
     })
   })

@@ -24,12 +24,21 @@ dist
 package
 build
 
+# Astro
+.astro
+
 # Env files
 .env
 
 # IDE files
 .idea
-.vscode
 
 # Temporary files
 tmp
+
+# Staff
+.vite*
+.codex
+.claude
+.agents
+skills-lock.json

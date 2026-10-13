@@ -1,7 +1,7 @@
 {
   "name": "conventional-changelog",
   "type": "module",
-  "version": "7.1.0",
+  "version": "8.1.3",
   "description": "Generate a changelog from git metadata.",
   "author": {
     "name": "Steve Mao",
@@ -20,7 +20,7 @@
     }
   ],
   "license": "MIT",
-  "homepage": "https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog#readme",
+  "homepage": "https://conventional-changelog.js.org/conventional-changelog/",
   "repository": {
     "type": "git",
     "url": "https://github.com/conventional-changelog/conventional-changelog.git",
@@ -37,7 +37,7 @@
     "cli"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "exports": "./src/index.ts",
   "publishConfig": {
@@ -65,13 +65,14 @@
   },
   "dependencies": {
     "@conventional-changelog/git-client": "workspace:^",
-    "@types/normalize-package-data": "^2.4.4",
+    "@simple-libs/hosted-git-info": "^2.0.0",
+    "@simple-libs/normalize-package-data": "^1.0.0",
+    "argue-cli": "catalog:",
     "conventional-changelog-preset-loader": "workspace:^",
     "conventional-changelog-writer": "workspace:^",
+    "conventional-commits-filter": "workspace:^",
     "conventional-commits-parser": "workspace:^",
-    "fd-package-json": "^1.2.0",
-    "meow": "^13.0.0",
-    "normalize-package-data": "^7.0.0"
+    "fd-package-json": "^2.0.0"
   },
   "devDependencies": {
     "conventional-changelog-angular": "workspace:^"

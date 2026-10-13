@@ -1,5 +1,63 @@
 # Changelog
 
+## [3.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v3.1.2...git-client-v3.2.0) (2026-10-05)
+
+### Features
+
+* replace `semver` with `verkit` ([#1555](https://github.com/conventional-changelog/conventional-changelog/issues/1555)) ([96d685e](https://github.com/conventional-changelog/conventional-changelog/commit/96d685e482272237b00713fb7e9ce5f3fdc755fc))
+
+## [3.1.2](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v3.1.1...git-client-v3.1.2) (2026-08-10)
+
+### Bug Fixes
+
+* end the options list before caller provided values ([#1535](https://github.com/conventional-changelog/conventional-changelog/issues/1535)) ([a44cd5a](https://github.com/conventional-changelog/conventional-changelog/commit/a44cd5aafa77298202d47bc7de07860418970088))
+
+## [3.1.1](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v3.1.0...git-client-v3.1.1) (2026-08-07)
+
+### Bug Fixes
+
+* do not generate sections for unstable tags when skipUnstable is set ([#1520](https://github.com/conventional-changelog/conventional-changelog/issues/1520)) ([41f708d](https://github.com/conventional-changelog/conventional-changelog/commit/41f708ddd02f6bf423f62f41999c30131975e046)), closes [#1519](https://github.com/conventional-changelog/conventional-changelog/issues/1519)
+
+## [3.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v3.0.2...git-client-v3.1.0) (2026-07-06)
+
+### Features
+
+* add all option to getTags to walk all refs ([#1501](https://github.com/conventional-changelog/conventional-changelog/issues/1501)) ([bc98da8](https://github.com/conventional-changelog/conventional-changelog/commit/bc98da8759d5d1d1510993e15e71f0baf5292112))
+
+## [3.0.2](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v3.0.1...git-client-v3.0.2) (2026-07-04)
+
+### Bug Fixes
+
+* point package homepages and docs to documentation website ([04796e2](https://github.com/conventional-changelog/conventional-changelog/commit/04796e22a649a14647feea99b445df2eb1c3acad))
+
+## [3.0.1](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v3.0.0...git-client-v3.0.1) (2026-06-27)
+
+### Bug Fixes
+
+* pass log params to semver tag lookup ([dd2ee41](https://github.com/conventional-changelog/conventional-changelog/commit/dd2ee4160478fd0bfb8a87e3ceaef40d31eb5a85))
+
+## [3.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v2.7.0...git-client-v3.0.0) (2026-06-26)
+
+### ⚠ BREAKING CHANGES
+
+* packages now require Node.js 22 or newer.
+
+### Features
+
+* require node 22 ([de5e136](https://github.com/conventional-changelog/conventional-changelog/commit/de5e1368096ea0805e51e20df587ce528ca0575b))
+
+## [2.7.0](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v2.6.0...git-client-v2.7.0) (2026-04-07)
+
+### Features
+
+* add firstParent option to getRawCommits ([#1450](https://github.com/conventional-changelog/conventional-changelog/issues/1450)) ([edb8f21](https://github.com/conventional-changelog/conventional-changelog/commit/edb8f2122327704a9db6bf5fdf3003b330e6ed47))
+
+## [2.6.0](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v2.5.1...git-client-v2.6.0) (2026-03-01)
+
+### Features
+
+* use utils from simple-libs ([#1432](https://github.com/conventional-changelog/conventional-changelog/issues/1432)) ([7d27d06](https://github.com/conventional-changelog/conventional-changelog/commit/7d27d0673878b995e9c0c82641d9d70eb9561024))
+
 ## [2.5.1](https://github.com/conventional-changelog/conventional-changelog/compare/git-client-v2.5.0...git-client-v2.5.1) (2025-06-02)
 
 ### Bug Fixes

@@ -3,6 +3,76 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [8.1.3](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v8.1.2...conventional-changelog-v8.1.3) (2026-08-12)
+
+### Bug Fixes
+
+* add conventional-commits-filter to dependencies ([#1536](https://github.com/conventional-changelog/conventional-changelog/issues/1536)) ([43f19df](https://github.com/conventional-changelog/conventional-changelog/commit/43f19dfd521ec46e3a17ff3564b5aebca499d8ea)), references [npm/cli#9249](https://github.com/npm/cli/issues/9249)
+
+## [8.1.2](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v8.1.1...conventional-changelog-v8.1.2) (2026-08-10)
+
+### Bug Fixes
+
+* use current host url paths ([#1534](https://github.com/conventional-changelog/conventional-changelog/issues/1534)) ([612d368](https://github.com/conventional-changelog/conventional-changelog/commit/612d36822d3f0bf4c3041e85d19175faf55da7cf)), closes [#986](https://github.com/conventional-changelog/conventional-changelog/issues/986)
+
+## [8.1.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v8.1.0...conventional-changelog-v8.1.1) (2026-08-06)
+
+### Bug Fixes
+
+* do not generate sections for unstable tags when skipUnstable is set ([#1520](https://github.com/conventional-changelog/conventional-changelog/issues/1520)) ([41f708d](https://github.com/conventional-changelog/conventional-changelog/commit/41f708ddd02f6bf423f62f41999c30131975e046)), closes [#1519](https://github.com/conventional-changelog/conventional-changelog/issues/1519)
+
+## [8.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v8.0.1...conventional-changelog-v8.1.0) (2026-07-09)
+
+### Features
+
+* replace `meow` with `argue-cli` ([#1505](https://github.com/conventional-changelog/conventional-changelog/issues/1505)) ([1ad6177](https://github.com/conventional-changelog/conventional-changelog/commit/1ad6177da0b9da2df4fffc41e0b6caf9b76bf200))
+
+## [8.0.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v8.0.0...conventional-changelog-v8.0.1) (2026-07-04)
+
+### Bug Fixes
+
+* point package homepages and docs to documentation website ([04796e2](https://github.com/conventional-changelog/conventional-changelog/commit/04796e22a649a14647feea99b445df2eb1c3acad))
+
+## [8.0.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v7.2.1...conventional-changelog-v8.0.0) (2026-06-26)
+
+### ⚠ BREAKING CHANGES
+
+* Handlebars template strings and partial files were replaced with render functions.
+* packages now require Node.js 22 or newer.
+
+### Features
+
+* replace handlebars templates with render functions ([#1477](https://github.com/conventional-changelog/conventional-changelog/issues/1477)) ([55e6716](https://github.com/conventional-changelog/conventional-changelog/commit/55e6716e8f40c2a705bcb0cd343e1dcacd2f9459))
+* require node 22 ([de5e136](https://github.com/conventional-changelog/conventional-changelog/commit/de5e1368096ea0805e51e20df587ce528ca0575b))
+* support manual commit ranges ([#1486](https://github.com/conventional-changelog/conventional-changelog/issues/1486)) ([45e1a20](https://github.com/conventional-changelog/conventional-changelog/commit/45e1a20110226e7aebaea8dd3cec7ef5e3eaf4db))
+
+### Bug Fixes
+
+* use lightweight package data normalization ([#1481](https://github.com/conventional-changelog/conventional-changelog/issues/1481)) ([b2564d1](https://github.com/conventional-changelog/conventional-changelog/commit/b2564d1f08e839837debe1f840b07a939851ff69))
+
+## [7.2.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v7.2.0...conventional-changelog-v7.2.1) (2026-06-22)
+
+### Bug Fixes
+
+* improve version tag parsing in changelog generation ([#1466](https://github.com/conventional-changelog/conventional-changelog/issues/1466)) ([268e0b5](https://github.com/conventional-changelog/conventional-changelog/commit/268e0b5d466e9f621e280f7a0db3c7c75e08c572))
+
+## [7.2.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v7.1.1...conventional-changelog-v7.2.0) (2026-03-01)
+
+### Features
+
+* align newline formatting across presets ([#1431](https://github.com/conventional-changelog/conventional-changelog/issues/1431)) ([b0721e1](https://github.com/conventional-changelog/conventional-changelog/commit/b0721e1d6c30b03e54d4fa5e271ecb67b5ae7ebe))
+* use utils from simple-libs ([#1432](https://github.com/conventional-changelog/conventional-changelog/issues/1432)) ([7d27d06](https://github.com/conventional-changelog/conventional-changelog/commit/7d27d0673878b995e9c0c82641d9d70eb9561024))
+
+### Bug Fixes
+
+* regex for git+https urls now supports multiple GitLab subgroups ([#1429](https://github.com/conventional-changelog/conventional-changelog/issues/1429)) ([4a7b763](https://github.com/conventional-changelog/conventional-changelog/commit/4a7b763143dfbcaf8c4bd434a4ef7f9cfca2bf8c))
+
+## [7.1.1](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v7.1.0...conventional-changelog-v7.1.1) (2025-07-10)
+
+### Bug Fixes
+
+* update dependency fd-package-json to v2 ([#1376](https://github.com/conventional-changelog/conventional-changelog/issues/1376)) ([932c87d](https://github.com/conventional-changelog/conventional-changelog/commit/932c87d03298fc0a166774d5a5b52cf6de795b3b))
+
 ## [7.1.0](https://github.com/conventional-changelog/conventional-changelog/compare/conventional-changelog-v7.0.2...conventional-changelog-v7.1.0) (2025-06-07)
 
 ### Features

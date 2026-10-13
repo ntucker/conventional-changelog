@@ -1,7 +1,7 @@
 {
   "name": "conventional-commits-parser",
   "type": "module",
-  "version": "6.2.0",
+  "version": "7.1.3",
   "description": "Parse raw conventional commits.",
   "author": {
     "name": "Steve Mao",
@@ -9,7 +9,7 @@
     "url": "https://github.com/stevemao"
   },
   "license": "MIT",
-  "homepage": "https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-commits-parser#readme",
+  "homepage": "https://conventional-changelog.js.org/commits-parser/",
   "repository": {
     "type": "git",
     "url": "https://github.com/conventional-changelog/conventional-changelog.git",
@@ -27,7 +27,7 @@
     "logs"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "exports": "./src/index.ts",
   "publishConfig": {
@@ -54,6 +54,7 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "meow": "^13.0.0"
+    "@simple-libs/stream-utils": "catalog:",
+    "argue-cli": "catalog:"
   }
 }

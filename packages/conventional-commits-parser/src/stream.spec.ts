@@ -1,4 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import {
+  describe,
+  it,
+  expect
+} from 'vitest'
 import { through } from '../../../tools/index.js'
 import { parseCommitsStream } from './stream.js'
 
@@ -221,7 +225,7 @@ describe('conventional-commits-parser', () => {
           issuePrefixes: ['#'],
           noteKeywords: ['BREAKING CHANGES'],
           referenceActions: ['fix'],
-          revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\./,
+          revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\.?/,
           mergePattern: /^Merge pull request #(\d+) from (.*)$/,
           revertCorrespondence: ['header']
         }))) {

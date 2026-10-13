@@ -1,12 +1,16 @@
-import { valid as semverValid } from 'semver'
+import {
+  type CommitKnownProps,
+  type FinalTemplateContext,
+  headerPartial,
+  preamblePartial,
+  commitPartial,
+  footerPartial,
+  template
+} from '@conventional-changelog/template'
+import { isValid } from 'verkit'
 import type {
   Options,
-  FinalTemplatesOptions,
-  FinalOptions,
-  FinalContext,
-  CommitKnownProps,
-  SortBy,
-  PickStrings
+  FinalOptions
 } from './types/index.js'
 import {
   formatDate,
@@ -51,12 +55,10 @@ export function defaultCommitTransform<Commit extends CommitKnownProps = CommitK
 /**
  * Get final options object.
  * @param options
- * @param templates
  * @returns Final options object.
  */
 export function getFinalOptions<Commit extends CommitKnownProps = CommitKnownProps>(
-  options: Options<Commit>,
-  templates: FinalTemplatesOptions
+  options: Options<Commit>
 ) {
   const prefinalOptions = {
     groupBy: 'type' as const,
@@ -64,20 +66,24 @@ export function getFinalOptions<Commit extends CommitKnownProps = CommitKnownPro
     noteGroupsSort: 'title' as const,
     notesSort: 'text' as const,
     transform: defaultCommitTransform,
-    generateOn: (commit: Commit) => Boolean(semverValid(commit.version)),
-    finalizeContext: (context: FinalContext<Commit>) => context,
+    generateOn: (commit: Commit) => typeof commit.version === 'string' && isValid(commit.version),
+    finalizeContext: (context: FinalTemplateContext<Commit>) => context,
     debug: () => { /* noop */ },
     formatDate,
+    template,
+    headerPartial,
+    preamblePartial,
+    commitPartial,
+    footerPartial,
     reverse: false,
     ignoreReverted: true,
     doFlush: true,
-    ...templates,
     ...options
   }
   const finalOptions = {
     ...prefinalOptions,
     commitGroupsSort: createComparator(prefinalOptions.commitGroupsSort),
-    commitsSort: createComparator(prefinalOptions.commitsSort as SortBy<PickStrings<Commit>>),
+    commitsSort: createComparator(prefinalOptions.commitsSort as string[]),
     noteGroupsSort: createComparator(prefinalOptions.noteGroupsSort),
     notesSort: createComparator(prefinalOptions.notesSort)
   } as FinalOptions<Commit>
@@ -92,7 +98,7 @@ export function getFinalOptions<Commit extends CommitKnownProps = CommitKnownPro
  * @returns Final context object.
  */
 export function getGenerateOnFunction<Commit extends CommitKnownProps = CommitKnownProps>(
-  context: FinalContext<Commit>,
+  context: FinalTemplateContext<Commit>,
   options: FinalOptions<Commit>
 ) {
   const { generateOn } = options

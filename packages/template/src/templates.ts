@@ -1,0 +1,244 @@
+import type {
+  FinalTemplateContext,
+  CommitKnownProps,
+  CommitNote,
+  CommitReference,
+  TransformedCommit
+} from './types/index.js'
+import {
+  each,
+  link,
+  list,
+  small,
+  heading,
+  segments,
+  strings,
+  words,
+  newline,
+  url
+} from './elements.js'
+
+/**
+ * Builds a repository URL from template context fields.
+ * @param context - Template context.
+ * @returns Repository URL.
+ */
+export function repositoryUrl<Commit extends CommitKnownProps = CommitKnownProps>(
+  context: FinalTemplateContext<Commit>
+) {
+  if (context.repository) {
+    return url(context.host, context.owner, context.repository)
+  }
+
+  return context.repoUrl || ''
+}
+
+/**
+ * Builds a repository URL for a commit reference.
+ * @param context - Template context.
+ * @param reference - Commit reference.
+ * @returns Reference repository URL.
+ */
+export function referenceRepositoryUrl<Commit extends CommitKnownProps = CommitKnownProps>(
+  context: FinalTemplateContext<Commit>,
+  reference: CommitReference
+) {
+  if (!context.repository) {
+    return context.repoUrl || ''
+  }
+
+  if (reference.repository) {
+    return url(context.host, reference.owner, reference.repository)
+  }
+
+  return url(context.host, context.owner, context.repository)
+}
+
+/**
+ * Builds a release comparison URL and encodes tag names as URL path segments.
+ * @param context - Template context.
+ * @returns Release comparison URL.
+ */
+export function compareUrl<Commit extends CommitKnownProps = CommitKnownProps>(
+  context: FinalTemplateContext<Commit>
+) {
+  const previousTag = encodeURIComponent(context.previousTag || '')
+  const currentTag = encodeURIComponent(context.currentTag || '')
+
+  return url(
+    repositoryUrl(context),
+    context.compare || 'compare',
+    `${previousTag}...${currentTag}`
+  )
+}
+
+export const BREAKING_CHANGE_KEYWORDS = ['BREAKING CHANGE', 'BREAKING-CHANGE']
+export const BREAKING_CHANGES_TITLE = 'BREAKING CHANGES'
+
+/**
+ * Renders a note group title.
+ * Breaking change keywords are merged into a single title,
+ * every other keyword is uppercased to group its spellings together.
+ * @param title - Note title as it was written in a commit.
+ * @returns Note group title.
+ */
+export function noteTitle(title: string) {
+  const upperCaseTitle = title.toUpperCase()
+
+  return BREAKING_CHANGE_KEYWORDS.includes(upperCaseTitle)
+    ? BREAKING_CHANGES_TITLE
+    : upperCaseTitle
+}
+
+/**
+ * Checks if a note is a breaking change note.
+ * @param note - Commit note.
+ * @returns Is it a breaking change note.
+ */
+export function isBreakingNote(note: CommitNote) {
+  return noteTitle(note.title) === BREAKING_CHANGES_TITLE
+}
+
+/**
+ * Renders a commit reference label.
+ * @param reference - Commit reference.
+ * @returns Commit reference label.
+ */
+export function reference(reference: CommitReference) {
+  return strings(
+    reference.owner && `${reference.owner}/`,
+    reference.repository,
+    reference.issue && `${reference.prefix || '#'}${reference.issue}`
+  )
+}
+
+/**
+ * Renders the default changelog header.
+ * @param context - Template context.
+ * @returns Changelog header.
+ */
+export function headerPartial<Commit extends CommitKnownProps = CommitKnownProps>({
+  isPatch,
+  title,
+  version,
+  date
+}: FinalTemplateContext<Commit>) {
+  const versionText = words(
+    version,
+    title && `"${title}"`,
+    date && `(${date})`
+  )
+
+  return heading(2, isPatch ? small(versionText) : versionText)
+}
+
+/**
+ * Renders the default changelog preamble.
+ * @param context - Template context.
+ * @returns Changelog preamble.
+ */
+export function preamblePartial<Commit extends CommitKnownProps = CommitKnownProps>(
+  { preamble }: FinalTemplateContext<Commit>
+) {
+  return strings(preamble)
+}
+
+/**
+ * Renders the default changelog footer.
+ * @param context - Template context.
+ * @returns Changelog footer.
+ */
+export function footerPartial<Commit extends CommitKnownProps = CommitKnownProps>(
+  { noteGroups }: FinalTemplateContext<Commit>
+) {
+  return each(
+    noteGroups,
+    group => segments(
+      heading(3, group.title),
+      list(
+        group.notes,
+        note => note.text
+      )
+    ),
+    newline(2)
+  )
+}
+
+/**
+ * Renders the default changelog commit line.
+ * @param context - Template context.
+ * @param commit - Transformed commit.
+ * @returns Changelog commit line.
+ */
+export function commitPartial<Commit extends CommitKnownProps = CommitKnownProps>(
+  context: FinalTemplateContext<Commit>,
+  commit: TransformedCommit<Commit>
+) {
+  const {
+    linkReferences,
+    issue,
+    commit: commitUrlPath
+  } = context
+  const {
+    hash,
+    references,
+    header
+  } = commit
+  const commitLink = hash
+    ? linkReferences
+      ? `(${link(hash, url(repositoryUrl(context), commitUrlPath, hash))})`
+      : hash
+    : ''
+  const renderedReferences = each(
+    references,
+    (linkReference) => {
+      if (linkReferences) {
+        return link(
+          reference(linkReference),
+          url(referenceRepositoryUrl(context, linkReference), issue, linkReference.issue)
+        )
+      }
+
+      return reference(linkReference)
+    },
+    ' '
+  )
+
+  return strings(
+    words(
+      header,
+      commitLink
+    ),
+    renderedReferences && `, closes ${renderedReferences}`
+  )
+}
+
+/**
+ * Renders the default changelog template.
+ * @param context - Template context.
+ * @returns Changelog text.
+ */
+export function template<Commit extends CommitKnownProps = CommitKnownProps>(
+  context: FinalTemplateContext<Commit>
+) {
+  const {
+    headerPartial,
+    preamblePartial,
+    commitPartial,
+    footerPartial,
+    commitGroups
+  } = context
+
+  return segments(
+    headerPartial(context),
+    preamblePartial(context),
+    each(
+      commitGroups,
+      group => list(
+        group.commits,
+        commit => commitPartial(context, commit)
+      )
+    ),
+    footerPartial(context)
+  )
+}

@@ -5,8 +5,15 @@ import {
   createWriteStream
 } from 'fs'
 import {
-  type Preset,
-  type ConventionalChangelog
+  readOptions,
+  option,
+  flag,
+  alias,
+  autocase
+} from 'argue-cli'
+import type {
+  Preset,
+  ConventionalChangelog
 } from '../index.js'
 import {
   parseOptions,
@@ -18,92 +25,39 @@ import {
   isFileExists
 } from './utils.js'
 
-export interface Flags {
-  infile?: string
-  outfile?: string
-  stdout?: boolean
-  preset?: string
-  pkg?: string
-  append?: boolean
-  releaseCount?: number
-  skipUnstable?: boolean
-  outputUnreleased?: boolean
-  verbose?: boolean
-  config?: string
-  context?: string
-  firstRelease?: boolean
-  lernaPackage?: string
-  tagPrefix?: string
+export function readFlags() {
+  return readOptions(
+    option(alias('infile', 'i'), String),
+    option(alias('outfile', 'o'), String),
+    flag('stdout'),
+    option(alias('preset', 'p'), String),
+    option(alias('pkg', 'k'), String),
+    flag(alias('append', 'a')),
+    option(autocase(alias('releaseCount', 'r')), Number),
+    flag(autocase('skipUnstable')),
+    flag(autocase(alias('outputUnreleased', 'u'))),
+    flag(alias('verbose', 'v')),
+    option(alias('config', 'n'), String),
+    option(alias('context', 'c'), String),
+    flag(autocase(alias('firstRelease', 'f'))),
+    option(autocase(alias('lernaPackage', 'l')), String),
+    option(autocase(alias('tagPrefix', 't')), String),
+    option(autocase('commitPath'), String),
+    option('from', String),
+    option('to', String),
+    flag('help'),
+    flag('version')
+  )
 }
 
-export const flags = {
-  infile: {
-    shortFlag: 'i',
-    default: 'CHANGELOG.md',
-    type: 'string'
-  },
-  outfile: {
-    shortFlag: 'o',
-    type: 'string'
-  },
-  stdout: {
-    type: 'boolean'
-  },
-  preset: {
-    shortFlag: 'p',
-    type: 'string'
-  },
-  pkg: {
-    shortFlag: 'k',
-    type: 'string'
-  },
-  append: {
-    shortFlag: 'a',
-    type: 'boolean'
-  },
-  releaseCount: {
-    shortFlag: 'r',
-    type: 'number'
-  },
-  skipUnstable: {
-    type: 'boolean'
-  },
-  outputUnreleased: {
-    shortFlag: 'u',
-    type: 'boolean'
-  },
-  verbose: {
-    shortFlag: 'v',
-    type: 'boolean'
-  },
-  config: {
-    shortFlag: 'n',
-    type: 'string'
-  },
-  context: {
-    shortFlag: 'c',
-    type: 'string'
-  },
-  firstRelease: {
-    shortFlag: 'f',
-    type: 'boolean'
-  },
-  lernaPackage: {
-    shortFlag: 'l',
-    type: 'string'
-  },
-  tagPrefix: {
-    shortFlag: 't',
-    type: 'string'
-  }
-} as const
+export type Flags = ReturnType<typeof readFlags>
 
 export async function runProgram(
   generator: ConventionalChangelog,
   flags: Flags
 ) {
   let {
-    infile,
+    infile = 'CHANGELOG.md',
     outfile,
     stdout,
     verbose,
@@ -143,19 +97,19 @@ export async function runProgram(
     }
   }
 
-  const options = parseOptions(flags as Record<string, unknown>)
+  const options = parseOptions(flags)
 
   if (options) {
     generator.options(options)
   }
 
-  const tagsOptions = parseTagsOptions(flags as Record<string, unknown>)
+  const tagsOptions = parseTagsOptions(flags)
 
   if (tagsOptions) {
     generator.tags(tagsOptions)
   }
 
-  const commitsOptions = parseCommitsOptions(flags as Record<string, unknown>)
+  const commitsOptions = parseCommitsOptions(flags)
 
   if (commitsOptions) {
     generator.commits(commitsOptions)
@@ -198,7 +152,17 @@ export async function runProgram(
           buffer.push(chunk)
         }
 
+        let newline = true
+
         for await (const chunk of input) {
+          if (newline) {
+            newline = false
+
+            if (!String(chunk).startsWith('\n')) {
+              buffer.push('\n')
+            }
+          }
+
           buffer.push(chunk)
         }
 
@@ -222,8 +186,19 @@ export async function runProgram(
       : process.stdout
   ) as WriteStream
 
-  for (const stream of streams) {
+  for (let i = 0, stream, newline; i < streams.length; i++) {
+    stream = streams[i]
+    newline = i > 0
+
     for await (const chunk of stream) {
+      if (newline) {
+        newline = false
+
+        if (!String(chunk).startsWith('\n')) {
+          output.write('\n')
+        }
+      }
+
       output.write(chunk)
     }
   }

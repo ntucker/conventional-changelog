@@ -1,5 +1,10 @@
 import path from 'path'
-import { afterAll, describe, it, expect } from 'vitest'
+import {
+  afterAll,
+  describe,
+  it,
+  expect
+} from 'vitest'
 import BetterThanBefore from 'better-than-before'
 import { ConventionalChangelog } from 'conventional-changelog'
 import {
@@ -63,6 +68,20 @@ setups([
   () => {
     testTools.gitCommit(['Revert \\"feat: default revert format\\"', 'This reverts commit 1234567.'])
     testTools.gitCommit(['revert: feat: custom revert format', 'This reverts commit 5678910.'])
+  },
+  () => {
+    testTools.gitCommit(['fix: replace `@nano_kit/router` with `@nano_kit/router2`'])
+  },
+  () => {
+    testTools.gitCommit([
+      'feat(api): drop legacy endpoints',
+      'BREAKING CHANGE: see #300 and ask @dlmr for details.',
+      'Already formatted: [#301](https://tracker.example/301).',
+      'Code span: `#302`.'
+    ])
+  },
+  () => {
+    testTools.gitCommit(['fix(api): patch a hole', 'SECURITY: fixed an XSS in the renderer'])
   }
 ])
 
@@ -75,6 +94,30 @@ afterAll(() => {
 })
 
 describe('conventional-changelog-angular', () => {
+  it('should render preamble after release header', async () => {
+    preparing(1)
+
+    const preamble = 'Compatibility notes before the grouped changes.'
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .context({
+        version: '1.0.0',
+        date: '2024-01-02',
+        preamble
+      })
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain([
+      '# 1.0.0 (2024-01-02)',
+      '',
+      preamble,
+      '',
+      '### Bug Fixes'
+    ].join('\n'))
+  })
+
   it('should work if there is no semver tag', async () => {
     preparing(1)
 
@@ -126,6 +169,24 @@ describe('conventional-changelog-angular', () => {
     expect(chunks[0]).toContain('[#133](https://github.com/conventional-changelog/conventional-changelog/issues/133)')
 
     expect(chunks.length).toBe(1)
+  })
+
+  it('should use the host issue path for references in the subject', async () => {
+    preparing(2)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .context({
+        host: 'https://gitlab.com',
+        owner: 'b',
+        repository: 'a',
+        issue: '-/issues'
+      })
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('[#133](https://gitlab.com/b/a/-/issues/133)')
   })
 
   it('should remove the issues that already appear in the subject', async () => {
@@ -290,5 +351,104 @@ describe('conventional-changelog-angular', () => {
     expect(chunks[0]).toMatch('default revert format')
 
     expect(chunks.length).toBe(1)
+  })
+
+  it('should not replace @mention inside backtick-wrapped code', async () => {
+    preparing(10)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('`@nano_kit/router`')
+    expect(chunks[0]).not.toContain('[@nano')
+  })
+
+  it('should format references in breaking change notes', async () => {
+    preparing(11)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('see [#300](https://github.com/conventional-changelog/conventional-changelog/issues/300)')
+    expect(chunks[0]).toContain('ask [@dlmr](https://github.com/dlmr) for details.')
+  })
+
+  it('should group notes by their keyword', async () => {
+    preparing(12)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .commits({}, {
+        noteKeywords: ['BREAKING CHANGE', 'SECURITY']
+      })
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('### SECURITY')
+    expect(chunks[0]).toContain('### BREAKING CHANGES')
+    expect(chunks[0]).toContain('**api:** fixed an XSS in the renderer')
+  })
+
+  it('should keep already formatted references in breaking change notes as is', async () => {
+    preparing(11)
+
+    const log = new ConventionalChangelog(testTools.cwd)
+      .readPackage()
+      .config(preset())
+      .write()
+    const chunks = await toArray(log)
+
+    expect(chunks[0]).toContain('Already formatted: [#301](https://tracker.example/301).')
+    expect(chunks[0]).toContain('Code span: `#302`.')
+    expect(chunks[0]).not.toContain('https://github.com/conventional-changelog/conventional-changelog/issues/301')
+    expect(chunks[0]).not.toContain('https://github.com/conventional-changelog/conventional-changelog/issues/302')
+  })
+
+  describe('whatBump', () => {
+    it('should bump major version for breaking change notes', () => {
+      const { whatBump } = preset()
+      const result = whatBump([
+        {
+          type: 'fix',
+          notes: [{
+            title: 'BREAKING CHANGE',
+            text: 'the config format has changed'
+          }]
+        }
+      ])
+
+      expect(result.level).toBe(0)
+      expect(result.reason).toBe('There is 1 BREAKING CHANGE and 0 features')
+    })
+
+    it('should not bump major version for other note keywords', () => {
+      const { whatBump } = preset()
+      const result = whatBump([
+        {
+          type: 'fix',
+          notes: [{
+            title: 'SECURITY',
+            text: 'fixed an XSS in the renderer'
+          }]
+        },
+        {
+          type: 'feat',
+          notes: [{
+            title: 'Security',
+            text: 'fixed a prototype pollution'
+          }]
+        }
+      ])
+
+      expect(result.level).toBe(1)
+      expect(result.reason).toBe('There are 0 BREAKING CHANGES and 1 features')
+    })
   })
 })

@@ -1,15 +1,16 @@
-import { type Context } from 'conventional-changelog-writer'
-import { hostsOptions } from './hosts/index.js'
+import type { TemplateContext } from 'conventional-changelog-writer'
+import { isPrereleaseVersion } from '@conventional-changelog/git-client'
 import type {
   Logger,
   HostedGitInfo,
   Params,
   Commit
 } from './types.js'
+import { hostsOptions } from './hosts/index.js'
 
 export function getHostOptions(
   repository: Partial<HostedGitInfo> | null | undefined,
-  context: Context | null | undefined
+  context: TemplateContext | null | undefined
 ) {
   const host = context?.host
   let type
@@ -62,14 +63,30 @@ export function isUnreleasedVersion(
     && (lastTag === version || lastTag === `v${version}`)
 }
 
-export const versionTagRegex = /tag:\s*(.*)[,)]/i
-export const defaultVersionRegex = /tag:\s*[v=]?(.*)[,)]/i
+export const versionTagRegex = /tag:\s*(.*?)[,)]/gi
+export const defaultVersionRegex = /tag:\s*[v=]?(.*?)[,)]/gi
+
+export function matchSemverTag(
+  gitTags: string | null | undefined,
+  regex: RegExp,
+  predicate: (tag: string) => boolean
+) {
+  if (typeof gitTags === 'string') {
+    for (const [, tag] of gitTags.matchAll(regex)) {
+      if (predicate(tag)) {
+        return tag
+      }
+    }
+  }
+
+  return null
+}
 
 export function defaultCommitTransform(commit: Commit, params: Params) {
   const { tags, options: { formatDate } } = params
   const prefix = tags?.prefix
   const versionRegex = prefix
-    ? new RegExp(`tag:\\s*[v=]?${prefix}(.*)[,)]`, 'i')
+    ? new RegExp(`tag:\\s*[v=]?${prefix}(.*?)[,)]`, 'gi')
     : defaultVersionRegex
   const {
     committerDate,
@@ -80,14 +97,14 @@ export function defaultCommitTransform(commit: Commit, params: Params) {
       ? formatDate!(committerDate)
       : committerDate
   }
+  const version = matchSemverTag(
+    gitTags,
+    versionRegex,
+    version => !(tags?.skipUnstable && isPrereleaseVersion(version))
+  )
 
-  if (typeof gitTags === 'string') {
-    const matches = gitTags.match(versionRegex)
-
-    if (matches) {
-      // eslint-disable-next-line prefer-destructuring
-      patch.version = matches[1]
-    }
+  if (version) {
+    patch.version = version
   }
 
   return patch
