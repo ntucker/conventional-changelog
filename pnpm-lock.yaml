@@ -158,12 +158,12 @@ importers:
 
   packages/conventional-changelog-preset-loader:
     devDependencies:
-      conventional-changelog-anansi:
-        specifier: workspace:^
-        version: link:../conventional-changelog-conventionalcommits
       conventional-changelog-angular:
         specifier: workspace:^
         version: link:../conventional-changelog-angular
+      conventional-changelog-conventionalcommits:
+        specifier: ^10.4.1
+        version: 10.4.1
     linkDirectory: false
     publishDirectory: package
 
@@ -220,9 +220,9 @@ importers:
         specifier: workspace:^
         version: link:../conventional-commits-parser
     devDependencies:
-      conventional-changelog-anansi:
-        specifier: workspace:^
-        version: link:../conventional-changelog-conventionalcommits
+      conventional-changelog-conventionalcommits:
+        specifier: ^10.4.1
+        version: 10.4.1
     linkDirectory: false
     publishDirectory: package
 
@@ -606,6 +606,10 @@ packages:
         optional: true
       conventional-commits-parser:
         optional: true
+
+  '@conventional-changelog/template@1.4.0':
+    resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
+    engines: {node: '>=22'}
 
   '@ctrl/tinycolor@4.2.0':
     resolution: {integrity: sha512-kzyuwOAQnXJNLS9PSyrk0CWk35nWJW/zl/6KvnTBMFK65gm7U1/Z5BqjxeapjZCIhQcM/DsrEmcbRwDyXyXK4A==}
@@ -2224,6 +2228,10 @@ packages:
   conventional-changelog-angular@8.3.1:
     resolution: {integrity: sha512-6gfI3otXK5Ph5DfCOI1dblr+kN3FAm5a97hYoQkqNZxOaYa5WKfXH+AnpsmS+iUH2mgVC2Cg2Qw9m5OKcmNrIg==}
     engines: {node: '>=18'}
+
+  conventional-changelog-conventionalcommits@10.4.1:
+    resolution: {integrity: sha512-jS1LRFSbRoAr6JbhhRy1JYfNNUj5LM3+v49hRE03CgccsiYqgdVj/RTmrw4J1rylrqijHwdOlJWiJa61JHOgHg==}
+    engines: {node: '>=22'}
 
   conventional-changelog-conventionalcommits@9.3.1:
     resolution: {integrity: sha512-dTYtpIacRpcZgrvBYvBfArMmK2xvIpv2TaxM0/ZI5CBtNUzvF2x0t15HsbRABWprS6UPmvj+PzHVjSx4qAVKyw==}
@@ -4971,6 +4979,8 @@ snapshots:
       conventional-commits-filter: 5.0.0
       conventional-commits-parser: 6.4.0
 
+  '@conventional-changelog/template@1.4.0': {}
+
   '@ctrl/tinycolor@4.2.0': {}
 
   '@emmetio/abbreviation@2.3.3':
@@ -6350,6 +6360,10 @@ snapshots:
   conventional-changelog-angular@8.3.1:
     dependencies:
       compare-func: 2.0.0
+
+  conventional-changelog-conventionalcommits@10.4.1:
+    dependencies:
+      '@conventional-changelog/template': 1.4.0
 
   conventional-changelog-conventionalcommits@9.3.1:
     dependencies:

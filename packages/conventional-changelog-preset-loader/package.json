@@ -45,6 +45,6 @@
   },
   "devDependencies": {
     "conventional-changelog-angular": "workspace:^",
-    "conventional-changelog-anansi": "workspace:^"
+    "conventional-changelog-conventionalcommits": "^10.4.1"
   }
 }
