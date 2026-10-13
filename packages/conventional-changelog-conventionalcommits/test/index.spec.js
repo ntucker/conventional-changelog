@@ -12,7 +12,8 @@ import {
   toArray
 } from '../../../tools/index.ts'
 import createPreset from '../src/index.js'
-import { CONVENTIONALCOMMITS_TYPES as DEFAULT_COMMIT_TYPES } from './conventionalcommitsTypes.js'
+// shared upstream specs assert the conventionalcommits defaults
+import { DEFAULT_COMMIT_TYPES } from 'conventional-changelog-conventionalcommits'
 
 const preset = config => createPreset({
   types: DEFAULT_COMMIT_TYPES,

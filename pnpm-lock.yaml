@@ -147,6 +147,9 @@ importers:
         specifier: workspace:^
         version: link:../template
     devDependencies:
+      conventional-changelog-conventionalcommits:
+        specifier: ^10.4.1
+        version: 10.4.1
       conventional-changelog-writer:
         specifier: workspace:^
         version: link:../conventional-changelog-writer
