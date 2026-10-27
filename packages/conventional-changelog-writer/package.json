@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "conventional-commits-filter": "workspace:^",
-    "handlebars": "^4.7.7",
+    "handlebars": "^4.7.10",
     "meow": "^13.0.0",
     "semver": "^7.5.2"
   },
